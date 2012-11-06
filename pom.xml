@@ -11,6 +11,7 @@
 
 	<properties>
 		<spring.integration.version>2.1.4.RELEASE</spring.integration.version>
+		<disruptor.version>2.10.3</disruptor.version>
 	</properties>
 
 	<dependencyManagement>
@@ -20,6 +21,11 @@
 				<artifactId>spring-integration-core</artifactId>
 				<version>${spring.integration.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>com.googlecode.disruptor</groupId>
+				<artifactId>disruptor</artifactId>
+				<version>${disruptor.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -27,6 +33,10 @@
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>spring-integration-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.disruptor</groupId>
+			<artifactId>disruptor</artifactId>
 		</dependency>
 	</dependencies>
 

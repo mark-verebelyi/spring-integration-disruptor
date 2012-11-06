@@ -1,0 +1,2 @@
+http\://www.springframework.org/schema/integration/disruptor/spring-integration-disruptor-0.1.xsd=org/springframework/integration/disruptor/config/spring-integration-disruptor-0.1.xsd
+http\://www.springframework.org/schema/integration/disruptor/spring-integration-disruptor.xsd=org/springframework/integration/jms/config/spring-integration-disruptor-0.1.xsd
