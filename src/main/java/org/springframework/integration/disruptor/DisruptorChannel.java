@@ -7,8 +7,8 @@ public class DisruptorChannel extends AbstractSubscribableChannel {
 
 	private final MessageDispatcher dispatcher;
 
-	public DisruptorChannel() {
-		this.dispatcher = new DisruptorDispatcher();
+	public DisruptorChannel(final int ringBufferSize) {
+		this.dispatcher = new DisruptorDispatcher(ringBufferSize);
 	}
 
 	@Override

@@ -43,14 +43,14 @@ public class DisruptorDispatcher extends AbstractDispatcher {
 	private final Executor executor;
 	private final Disruptor<GenericEvent> disruptor;
 
-	public DisruptorDispatcher() {
+	public DisruptorDispatcher(final int ringBufferSize) {
 		this.executor = Executors.newSingleThreadExecutor();
-		this.disruptor = this.newDisruptor();
+		this.disruptor = this.newDisruptor(ringBufferSize);
 		this.disruptor.start();
 	}
 
-	private Disruptor<GenericEvent> newDisruptor() {
-		final Disruptor<GenericEvent> disruptor = new Disruptor<GenericEvent>(GenericEvent.newEventFactory(), 32, this.executor);
+	private Disruptor<GenericEvent> newDisruptor(final int ringBufferSize) {
+		final Disruptor<GenericEvent> disruptor = new Disruptor<GenericEvent>(GenericEvent.newEventFactory(), ringBufferSize, this.executor);
 		this.registerHandlers(disruptor);
 		return disruptor;
 	}

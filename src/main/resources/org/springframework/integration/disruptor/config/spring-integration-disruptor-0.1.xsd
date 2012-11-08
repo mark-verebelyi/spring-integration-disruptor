@@ -12,6 +12,13 @@
 		<xs:complexType>
 			<xs:complexContent>
 				<xs:extension base="integration:channelType">
+					<xs:sequence>
+						<xs:element name="ring-buffer" minOccurs="0" maxOccurs="1">
+							<xs:complexType>
+								<xs:attribute name="size" type="xs:positiveInteger" default="32"/>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
 				</xs:extension>
 			</xs:complexContent>
 		</xs:complexType>

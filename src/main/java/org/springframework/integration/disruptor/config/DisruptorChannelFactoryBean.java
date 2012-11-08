@@ -9,11 +9,17 @@ import org.springframework.integration.disruptor.DisruptorChannel;
 
 public class DisruptorChannelFactoryBean implements FactoryBean<MessageChannel> {
 
+	private int ringBufferSize;
+
+	public void setSize(final int ringBufferSize) {
+		this.ringBufferSize = ringBufferSize;
+	}
+
 	public void setInterceptors(final List<ChannelInterceptor> interceptors) {
 	}
 
 	public MessageChannel getObject() throws Exception {
-		return new DisruptorChannel();
+		return new DisruptorChannel(this.ringBufferSize);
 	}
 
 	public Class<?> getObjectType() {
