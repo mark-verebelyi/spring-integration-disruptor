@@ -16,6 +16,14 @@
 			<xs:enumeration value="yielding"/>
 		</xs:restriction>
 	</xs:simpleType>
+	
+	<xs:simpleType name="ClaimStrategyType">	
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="single-threaded"/>
+			<xs:enumeration value="multi-threaded"/>
+			<xs:enumeration value="multi-threaded-low-contention"/>			
+		</xs:restriction>
+	</xs:simpleType>	
 
 	<xs:element name="channel">
 		<xs:complexType>
@@ -25,7 +33,8 @@
 						<xs:element name="ring-buffer" minOccurs="0" maxOccurs="1">
 							<xs:complexType>
 								<xs:attribute name="size" type="xs:positiveInteger" default="32"/>
-								<xs:attribute name="wait-strategy" type="WaitStrategyType"/>
+								<xs:attribute name="wait-strategy" type="WaitStrategyType" default="blocking"/>
+								<xs:attribute name="claim-strategy" type="ClaimStrategyType" default="multi-threaded"/>
 							</xs:complexType>
 						</xs:element>
 					</xs:sequence>

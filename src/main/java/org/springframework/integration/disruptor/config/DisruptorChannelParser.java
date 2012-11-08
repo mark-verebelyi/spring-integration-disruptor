@@ -8,11 +8,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
-import com.lmax.disruptor.BlockingWaitStrategy;
-import com.lmax.disruptor.BusySpinWaitStrategy;
-import com.lmax.disruptor.SleepingWaitStrategy;
-import com.lmax.disruptor.YieldingWaitStrategy;
-
 public class DisruptorChannelParser extends AbstractChannelParser {
 
 	@Override
@@ -20,26 +15,28 @@ public class DisruptorChannelParser extends AbstractChannelParser {
 		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DisruptorChannelFactoryBean.class);
 		final Element ringBufferElement = DomUtils.getChildElementByTagName(element, "ring-buffer");
 		if (ringBufferElement != null) {
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, ringBufferElement, "size");
+			parseBasicAttributes(builder, ringBufferElement, parserContext);
 			parseWaitStrategy(builder, ringBufferElement, parserContext);
+			parseClaimStrategy(builder, ringBufferElement, parserContext);
 		}
 		return builder;
+	}
+
+	private static void parseBasicAttributes(final BeanDefinitionBuilder builder, final Element ringBufferElement, final ParserContext parserContext) {
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, ringBufferElement, "size");
+	}
+
+	private static void parseClaimStrategy(final BeanDefinitionBuilder builder, final Element ringBufferElement, final ParserContext parserContext) {
+		final String claimStrategy = ringBufferElement.getAttribute("claim-strategy");
+		if (StringUtils.hasText(claimStrategy)) {
+			builder.addPropertyValue("claimStrategy", ClaimStrategy.fromName(claimStrategy));
+		}
 	}
 
 	private static void parseWaitStrategy(final BeanDefinitionBuilder builder, final Element ringBufferElement, final ParserContext parserContext) {
 		final String waitStrategy = ringBufferElement.getAttribute("wait-strategy");
 		if (StringUtils.hasText(waitStrategy)) {
-			if ("blocking".equals(waitStrategy)) {
-				builder.addPropertyValue("waitStrategy", new BlockingWaitStrategy());
-			} else if ("busy-spin".equals(waitStrategy)) {
-				builder.addPropertyValue("waitStrategy", new BusySpinWaitStrategy());
-			} else if ("sleeping".equals(waitStrategy)) {
-				builder.addPropertyValue("waitStrategy", new SleepingWaitStrategy());
-			} else if ("yielding".equals(waitStrategy)) {
-				builder.addPropertyValue("waitStrategy", new YieldingWaitStrategy());
-			} else {
-				parserContext.getReaderContext().error("Invalid wait strategy: " + waitStrategy, ringBufferElement);
-			}
+			builder.addPropertyValue("waitStrategy", WaitStrategy.fromName(waitStrategy));
 		}
 	}
 }
