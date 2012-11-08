@@ -10,6 +10,10 @@ public class DisruptorChannel extends AbstractSubscribableChannel {
 
 	private final MessageDispatcher dispatcher;
 
+	public DisruptorChannel() {
+		this.dispatcher = new DisruptorDispatcher();
+	}
+
 	public DisruptorChannel(final ClaimStrategy claimStrategy, final WaitStrategy waitStrategy) {
 		this.dispatcher = new DisruptorDispatcher(claimStrategy, waitStrategy);
 	}

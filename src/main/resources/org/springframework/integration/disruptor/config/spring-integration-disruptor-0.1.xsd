@@ -32,7 +32,7 @@
 					<xs:sequence>
 						<xs:element name="ring-buffer" minOccurs="0" maxOccurs="1">
 							<xs:complexType>
-								<xs:attribute name="size" type="xs:positiveInteger" default="32"/>
+								<xs:attribute name="buffer-size" type="xs:positiveInteger" default="1024"/>
 								<xs:attribute name="wait-strategy" type="WaitStrategyType" default="blocking"/>
 								<xs:attribute name="claim-strategy" type="ClaimStrategyType" default="multi-threaded"/>
 							</xs:complexType>

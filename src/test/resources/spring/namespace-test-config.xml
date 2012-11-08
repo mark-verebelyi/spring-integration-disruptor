@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<int-disruptor:channel id="channel1">
-		<int-disruptor:ring-buffer size="128" wait-strategy="busy-spin" claim-strategy="multi-threaded-low-contention"/>
+		<int-disruptor:ring-buffer buffer-size="128" wait-strategy="busy-spin" claim-strategy="multi-threaded-low-contention"/>
 	</int-disruptor:channel>
 
 </beans>
