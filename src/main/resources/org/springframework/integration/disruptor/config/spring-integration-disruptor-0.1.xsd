@@ -8,6 +8,15 @@
 	<xs:import namespace="http://www.springframework.org/schema/integration"
 		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.1.xsd" />
 
+	<xs:simpleType name="WaitStrategyType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="blocking"/>
+			<xs:enumeration value="busy-spin"/>
+			<xs:enumeration value="sleeping"/>
+			<xs:enumeration value="yielding"/>
+		</xs:restriction>
+	</xs:simpleType>
+
 	<xs:element name="channel">
 		<xs:complexType>
 			<xs:complexContent>
@@ -16,6 +25,7 @@
 						<xs:element name="ring-buffer" minOccurs="0" maxOccurs="1">
 							<xs:complexType>
 								<xs:attribute name="size" type="xs:positiveInteger" default="32"/>
+								<xs:attribute name="wait-strategy" type="WaitStrategyType"/>
 							</xs:complexType>
 						</xs:element>
 					</xs:sequence>

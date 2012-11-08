@@ -12,6 +12,8 @@ import org.springframework.integration.support.MessageBuilder;
 import com.lmax.disruptor.EventFactory;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.EventTranslator;
+import com.lmax.disruptor.SingleThreadedClaimStrategy;
+import com.lmax.disruptor.WaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 
 public class DisruptorDispatcher extends AbstractDispatcher {
@@ -43,14 +45,15 @@ public class DisruptorDispatcher extends AbstractDispatcher {
 	private final Executor executor;
 	private final Disruptor<GenericEvent> disruptor;
 
-	public DisruptorDispatcher(final int ringBufferSize) {
+	public DisruptorDispatcher(final int ringBufferSize, final WaitStrategy waitStrategy) {
 		this.executor = Executors.newSingleThreadExecutor();
-		this.disruptor = this.newDisruptor(ringBufferSize);
+		this.disruptor = this.newDisruptor(ringBufferSize, waitStrategy);
 		this.disruptor.start();
 	}
 
-	private Disruptor<GenericEvent> newDisruptor(final int ringBufferSize) {
-		final Disruptor<GenericEvent> disruptor = new Disruptor<GenericEvent>(GenericEvent.newEventFactory(), ringBufferSize, this.executor);
+	private Disruptor<GenericEvent> newDisruptor(final int ringBufferSize, final WaitStrategy waitStrategy) {
+		final Disruptor<GenericEvent> disruptor = new Disruptor<GenericEvent>(GenericEvent.newEventFactory(), this.executor, new SingleThreadedClaimStrategy(
+				ringBufferSize), waitStrategy);
 		this.registerHandlers(disruptor);
 		return disruptor;
 	}
