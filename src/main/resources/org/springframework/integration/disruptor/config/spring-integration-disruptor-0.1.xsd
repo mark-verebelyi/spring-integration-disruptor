@@ -2,46 +2,60 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
 	xmlns="http://www.springframework.org/schema/integration/disruptor"
 	xmlns:integration="http://www.springframework.org/schema/integration"
+	xmlns:tool="http://www.springframework.org/schema/tool" 
 	targetNamespace="http://www.springframework.org/schema/integration/disruptor"
 	elementFormDefault="qualified">
 
 	<xs:import namespace="http://www.springframework.org/schema/integration"
 		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.1.xsd" />
+		
+	<xs:import namespace="http://www.springframework.org/schema/tool" /> 
 
 	<xs:simpleType name="WaitStrategyType">
 		<xs:restriction base="xs:string">
-			<xs:enumeration value="blocking"/>
-			<xs:enumeration value="busy-spin"/>
-			<xs:enumeration value="sleeping"/>
-			<xs:enumeration value="yielding"/>
+			<xs:enumeration value="blocking" />
+			<xs:enumeration value="busy-spin" />
+			<xs:enumeration value="sleeping" />
+			<xs:enumeration value="yielding" />
 		</xs:restriction>
 	</xs:simpleType>
-	
-	<xs:simpleType name="ClaimStrategyType">	
+
+	<xs:simpleType name="ClaimStrategyType">
 		<xs:restriction base="xs:string">
-			<xs:enumeration value="single-threaded"/>
-			<xs:enumeration value="multi-threaded"/>
-			<xs:enumeration value="multi-threaded-low-contention"/>			
+			<xs:enumeration value="single-threaded" />
+			<xs:enumeration value="multi-threaded" />
+			<xs:enumeration value="multi-threaded-low-contention" />
 		</xs:restriction>
 	</xs:simpleType>
-	
+
 	<xs:element name="disruptor">
 		<xs:complexType>
-				<xs:attribute name="id" type="xs:string" use="required" />
-				<xs:attribute name="scope" type="xs:string" />
-				<xs:attribute name="event-factory" type="xs:string" use="optional"/>
-				<xs:attribute name="executor" type="xs:string" use="optional"/>
-				<xs:attribute name="buffer-size" type="xs:positiveInteger" default="1024"/>
-				<xs:attribute name="wait-strategy" type="WaitStrategyType" default="blocking"/>
-				<xs:attribute name="claim-strategy" type="ClaimStrategyType" default="multi-threaded"/>
+			<xs:attribute name="id" type="xs:string" use="required" />
+			<xs:attribute name="scope" type="xs:string" />
+			<xs:attribute name="event-factory" type="xs:string" use="optional" />
+			<xs:attribute name="executor" type="xs:string" use="optional" />
+			<xs:attribute name="buffer-size" type="xs:positiveInteger"
+				default="1024" />
+			<xs:attribute name="wait-strategy" type="WaitStrategyType"
+				default="blocking" />
+			<xs:attribute name="claim-strategy" type="ClaimStrategyType"
+				default="multi-threaded" />
 		</xs:complexType>
-	</xs:element>	
+	</xs:element>
 
 	<xs:element name="channel">
 		<xs:complexType>
 			<xs:complexContent>
 				<xs:extension base="integration:channelType">
-					<xs:attribute name="disruptor" type="xs:string" use="required"/>
+					<xs:attribute name="disruptor" type="xs:string" use="required">
+						<xs:annotation>
+							<xs:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="com.lmax.disruptor.dsl.Disruptor" />
+								</tool:annotation>
+							</xs:appinfo>
+						</xs:annotation>
+					</xs:attribute>
 				</xs:extension>
 			</xs:complexContent>
 		</xs:complexType>

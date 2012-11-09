@@ -5,21 +5,22 @@ import org.springframework.integration.dispatcher.MessageDispatcher;
 
 import com.lmax.disruptor.dsl.Disruptor;
 
-public class DisruptorChannel<T> extends AbstractSubscribableChannel {
+public class DisruptorChannel extends AbstractSubscribableChannel {
 
-	private final MessageDispatcher dispatcher;
+	private final DisruptorDispatcher dispatcher;
 
-	public DisruptorChannel() {
-		this.dispatcher = new DisruptorDispatcher();
-	}
-
-	public DisruptorChannel(final Disruptor<T> disruptor) {
-		this.dispatcher = new DisruptorDispatcher(claimStrategy, waitStrategy);
+	public DisruptorChannel(final Disruptor<MessagingEvent> disruptor) {
+		this.dispatcher = new DisruptorDispatcher(disruptor);
 	}
 
 	@Override
 	protected MessageDispatcher getDispatcher() {
 		return this.dispatcher;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		this.dispatcher.onInit();
 	}
 
 }

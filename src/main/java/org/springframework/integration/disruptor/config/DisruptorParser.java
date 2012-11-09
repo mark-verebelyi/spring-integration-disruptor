@@ -6,7 +6,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.disruptor.GenericEvent;
+import org.springframework.integration.disruptor.MessagingEvent;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -19,37 +19,38 @@ import com.lmax.disruptor.SingleThreadedClaimStrategy;
 import com.lmax.disruptor.SleepingWaitStrategy;
 import com.lmax.disruptor.WaitStrategy;
 import com.lmax.disruptor.YieldingWaitStrategy;
+import com.lmax.disruptor.dsl.Disruptor;
 
 public class DisruptorParser extends AbstractBeanDefinitionParser {
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(final Element element, final ParserContext parserContext) {
-		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DisruptorFactoryBean.class);
-
-		final String executor = element.getAttribute("executor");
-		if (StringUtils.hasText(executor)) {
-			builder.addPropertyReference("executor", executor);
-		} else {
-			builder.addPropertyValue("executor", Executors.newSingleThreadExecutor());
-		}
+		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(Disruptor.class);
 
 		final String eventFactory = element.getAttribute("event-factory");
 		if (StringUtils.hasText(eventFactory)) {
-			builder.addPropertyReference("eventFactory", eventFactory);
+			builder.addConstructorArgReference(eventFactory);
 		} else {
-			builder.addPropertyValue("eventFactory", GenericEvent.newEventFactory());
+			builder.addConstructorArgValue(MessagingEvent.newEventFactory());
+		}
+
+		final String executor = element.getAttribute("executor");
+		if (StringUtils.hasText(executor)) {
+			builder.addConstructorArgReference(executor);
+		} else {
+			builder.addConstructorArgValue(Executors.newSingleThreadExecutor());
 		}
 
 		final int bufferSize = parseBufferSize(element);
 
-		final String waitStrategy = element.getAttribute("wait-strategy");
-		if (StringUtils.hasText(waitStrategy)) {
-			builder.addPropertyValue("waitStrategy", parseWaitStrategy(waitStrategy));
-		}
-
 		final String claimStrategy = element.getAttribute("claim-strategy");
 		if (StringUtils.hasText(claimStrategy)) {
-			builder.addPropertyValue("claimStrategy", parseClaimStrategy(claimStrategy, bufferSize));
+			builder.addConstructorArgValue(parseClaimStrategy(claimStrategy, bufferSize));
+		}
+
+		final String waitStrategy = element.getAttribute("wait-strategy");
+		if (StringUtils.hasText(waitStrategy)) {
+			builder.addConstructorArgValue(parseWaitStrategy(waitStrategy));
 		}
 
 		return builder.getBeanDefinition();

@@ -5,49 +5,47 @@ import java.util.List;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
-import org.springframework.integration.support.MessageBuilder;
 
-import com.lmax.disruptor.ClaimStrategy;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.EventTranslator;
-import com.lmax.disruptor.WaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 
-public class DisruptorDispatcher<T> extends AbstractDispatcher {
+public class DisruptorDispatcher extends AbstractDispatcher {
 
-	private final Disruptor<T> disruptor;
+	private final Disruptor<MessagingEvent> disruptor;
 
-	public DisruptorDispatcher(final Disruptor<T> disruptor) {
-		this.disruptor = disruptor;
-	}
-
-	private Disruptor<GenericEvent> newDisruptor(final ClaimStrategy claimStrategy, final WaitStrategy waitStrategy) {
-		this.registerHandlers();
+	public DisruptorDispatcher(final Disruptor<MessagingEvent> disruptor) {
+		this.disruptor = this.registerHandlerFor(disruptor);
 	}
 
 	@SuppressWarnings("unchecked")
-	private void registerHandlers(final Disruptor<GenericEvent> disruptor) {
-		disruptor.handleEventsWith(new EventHandler<GenericEvent>() {
+	private Disruptor<MessagingEvent> registerHandlerFor(final Disruptor<MessagingEvent> disruptor) {
+		disruptor.handleEventsWith(new EventHandler<MessagingEvent>() {
 
-			public void onEvent(final GenericEvent event, final long sequence, final boolean endOfBatch) throws Exception {
+			public void onEvent(final MessagingEvent event, final long sequence, final boolean endOfBatch) throws Exception {
 				final List<MessageHandler> handlers = DisruptorDispatcher.this.getHandlers();
 				for (final MessageHandler handler : handlers) {
-					handler.handleMessage(MessageBuilder.withPayload(event.getPayload()).build());
+					handler.handleMessage(event.getPayload());
 				}
 			}
 
 		});
+		return disruptor;
 	}
 
 	public boolean dispatch(final Message<?> message) {
-		this.disruptor.publishEvent(new EventTranslator<GenericEvent>() {
+		this.disruptor.publishEvent(new EventTranslator<MessagingEvent>() {
 
-			public void translateTo(final GenericEvent event, final long sequence) {
-				event.setPayload(message.getPayload());
+			public void translateTo(final MessagingEvent event, final long sequence) {
+				event.setPayload(message);
 			}
 
 		});
 		return true;
+	}
+
+	public void onInit() {
+		this.disruptor.start();
 	}
 
 }

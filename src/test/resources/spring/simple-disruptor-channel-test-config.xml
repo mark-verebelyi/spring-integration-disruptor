@@ -9,9 +9,7 @@
 
 	<int-disruptor:disruptor id="disruptor" buffer-size="128" wait-strategy="yielding" claim-strategy="single-threaded"/>
 
-	<int-disruptor:channel id="channel1">
-		<int-disruptor:ring-buffer buffer-size="32" claim-strategy="multi-threaded-low-contention" wait-strategy="yielding"/>
-	</int-disruptor:channel>
+	<int-disruptor:channel id="channel1" disruptor="disruptor"/>
 	
 	<int:logging-channel-adapter channel="channel1"/>
 
