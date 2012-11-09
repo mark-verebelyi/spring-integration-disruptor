@@ -7,6 +7,7 @@ public class DisruptorNamespaceHandler extends AbstractIntegrationNamespaceHandl
 	public void init() {
 		this.registerBeanDefinitionParser("disruptor", new DisruptorParser());
 		this.registerBeanDefinitionParser("channel", new DisruptorChannelParser());
+		this.registerBeanDefinitionParser("messaging-event-factory", new MessagingEventFactoryParser());
 	}
 
 }

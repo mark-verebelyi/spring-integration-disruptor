@@ -7,8 +7,9 @@
 		http://www.springframework.org/schema/integration/disruptor http://www.springframework.org/schema/integration/disruptor/spring-integration-disruptor-0.1.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<int-disruptor:channel id="channel1" disruptor="disruptor">
-		<int-disruptor:ring-buffer buffer-size="128" wait-strategy="busy-spin" claim-strategy="multi-threaded-low-contention"/>
-	</int-disruptor:channel>
-	
+	<int-disruptor:disruptor id="disruptor"
+		buffer-size="128" wait-strategy="yielding" claim-strategy="single-threaded" />
+
+	<int-disruptor:channel id="channel1" disruptor="disruptor" />
+
 </beans>

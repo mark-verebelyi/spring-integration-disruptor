@@ -17,13 +17,7 @@ public final class MessagingEvent {
 	}
 
 	public static EventFactory<MessagingEvent> newEventFactory() {
-		return new EventFactory<MessagingEvent>() {
-
-			public MessagingEvent newInstance() {
-				return new MessagingEvent();
-			}
-
-		};
+		return new MessagingEventFactory();
 	}
 
 }
