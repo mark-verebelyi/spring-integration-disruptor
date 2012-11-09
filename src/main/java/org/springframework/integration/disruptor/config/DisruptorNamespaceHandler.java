@@ -5,6 +5,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 public class DisruptorNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
+		this.registerBeanDefinitionParser("disruptor", new DisruptorParser());
 		this.registerBeanDefinitionParser("channel", new DisruptorChannelParser());
 	}
 

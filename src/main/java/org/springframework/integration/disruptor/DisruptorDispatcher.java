@@ -1,68 +1,28 @@
 package org.springframework.integration.disruptor;
 
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.support.MessageBuilder;
 
-import com.lmax.disruptor.BlockingWaitStrategy;
 import com.lmax.disruptor.ClaimStrategy;
-import com.lmax.disruptor.EventFactory;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.EventTranslator;
-import com.lmax.disruptor.MultiThreadedClaimStrategy;
 import com.lmax.disruptor.WaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 
-public class DisruptorDispatcher extends AbstractDispatcher {
+public class DisruptorDispatcher<T> extends AbstractDispatcher {
 
-	private static final int DEFAULT_BUFFER_SIZE = 1024;
+	private final Disruptor<T> disruptor;
 
-	private static final class GenericEvent {
-
-		private Object payload;
-
-		public Object getPayload() {
-			return this.payload;
-		}
-
-		public void setPayload(final Object payload) {
-			this.payload = payload;
-		}
-
-		public static EventFactory<GenericEvent> newEventFactory() {
-			return new EventFactory<GenericEvent>() {
-
-				public GenericEvent newInstance() {
-					return new GenericEvent();
-				}
-
-			};
-		}
-
-	}
-
-	private final Executor executor;
-	private final Disruptor<GenericEvent> disruptor;
-
-	public DisruptorDispatcher() {
-		this(new MultiThreadedClaimStrategy(DEFAULT_BUFFER_SIZE), new BlockingWaitStrategy());
-	}
-
-	public DisruptorDispatcher(final ClaimStrategy claimStrategy, final WaitStrategy waitStrategy) {
-		this.executor = Executors.newSingleThreadExecutor();
-		this.disruptor = this.newDisruptor(claimStrategy, waitStrategy);
-		this.disruptor.start();
+	public DisruptorDispatcher(final Disruptor<T> disruptor) {
+		this.disruptor = disruptor;
 	}
 
 	private Disruptor<GenericEvent> newDisruptor(final ClaimStrategy claimStrategy, final WaitStrategy waitStrategy) {
-		final Disruptor<GenericEvent> disruptor = new Disruptor<GenericEvent>(GenericEvent.newEventFactory(), this.executor, claimStrategy, waitStrategy);
-		this.registerHandlers(disruptor);
-		return disruptor;
+		this.registerHandlers();
 	}
 
 	@SuppressWarnings("unchecked")

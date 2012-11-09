@@ -23,21 +23,25 @@
 			<xs:enumeration value="multi-threaded"/>
 			<xs:enumeration value="multi-threaded-low-contention"/>			
 		</xs:restriction>
-	</xs:simpleType>	
+	</xs:simpleType>
+	
+	<xs:element name="disruptor">
+		<xs:complexType>
+				<xs:attribute name="id" type="xs:string" use="required" />
+				<xs:attribute name="scope" type="xs:string" />
+				<xs:attribute name="event-factory" type="xs:string" use="optional"/>
+				<xs:attribute name="executor" type="xs:string" use="optional"/>
+				<xs:attribute name="buffer-size" type="xs:positiveInteger" default="1024"/>
+				<xs:attribute name="wait-strategy" type="WaitStrategyType" default="blocking"/>
+				<xs:attribute name="claim-strategy" type="ClaimStrategyType" default="multi-threaded"/>
+		</xs:complexType>
+	</xs:element>	
 
 	<xs:element name="channel">
 		<xs:complexType>
 			<xs:complexContent>
 				<xs:extension base="integration:channelType">
-					<xs:sequence>
-						<xs:element name="ring-buffer" minOccurs="0" maxOccurs="1">
-							<xs:complexType>
-								<xs:attribute name="buffer-size" type="xs:positiveInteger" default="1024"/>
-								<xs:attribute name="wait-strategy" type="WaitStrategyType" default="blocking"/>
-								<xs:attribute name="claim-strategy" type="ClaimStrategyType" default="multi-threaded"/>
-							</xs:complexType>
-						</xs:element>
-					</xs:sequence>
+					<xs:attribute name="disruptor" type="xs:string" use="required"/>
 				</xs:extension>
 			</xs:complexContent>
 		</xs:complexType>

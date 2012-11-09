@@ -3,10 +3,9 @@ package org.springframework.integration.disruptor;
 import org.springframework.integration.channel.AbstractSubscribableChannel;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 
-import com.lmax.disruptor.ClaimStrategy;
-import com.lmax.disruptor.WaitStrategy;
+import com.lmax.disruptor.dsl.Disruptor;
 
-public class DisruptorChannel extends AbstractSubscribableChannel {
+public class DisruptorChannel<T> extends AbstractSubscribableChannel {
 
 	private final MessageDispatcher dispatcher;
 
@@ -14,7 +13,7 @@ public class DisruptorChannel extends AbstractSubscribableChannel {
 		this.dispatcher = new DisruptorDispatcher();
 	}
 
-	public DisruptorChannel(final ClaimStrategy claimStrategy, final WaitStrategy waitStrategy) {
+	public DisruptorChannel(final Disruptor<T> disruptor) {
 		this.dispatcher = new DisruptorDispatcher(claimStrategy, waitStrategy);
 	}
 
