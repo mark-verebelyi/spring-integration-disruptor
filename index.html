@@ -40,7 +40,13 @@
 <ul>
 <li>Extensive XML namespace support</li>
 <li>RingBuffer/Disruptor-backed MessageChannels, Adapters, Gateways</li>
-</ul>
+</ul><p><code>&lt;int-disruptor:disruptor id="disruptor" buffer-size="128" wait-strategy="yielding" claim-strategy="single-threaded" /&gt;</code></p>
+
+<p><code>&lt;int-disruptor:channel id="channel1" disruptor="disruptor" /&gt;</code></p>
+
+<p><code>&lt;int-disruptor:ring-buffer id="ring-buffer" buffer-size="512" claim-strategy="multi-threaded" wait-strategy="busy-spin" /&gt;</code></p>
+
+<p><code>&lt;int-disruptor:messaging-event-factory id="eventFactory"/&gt;</code></p>
       </section>
     </div>
 
