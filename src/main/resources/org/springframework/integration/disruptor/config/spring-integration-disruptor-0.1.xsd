@@ -28,6 +28,29 @@
 		</xs:restriction>
 	</xs:simpleType>
 
+	<xs:attributeGroup name="RingBufferConfigurationAttributeGroup">
+		<xs:attribute name="event-factory" type="xs:string">
+			<xs:annotation>
+				<xs:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="com.lmax.disruptor.EventFactory" />
+					</tool:annotation>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="buffer-size" type="xs:positiveInteger"
+			default="1024" />
+		<xs:attribute name="wait-strategy" type="WaitStrategyType"
+			default="blocking" />
+		<xs:attribute name="claim-strategy" type="ClaimStrategyType"
+			default="multi-threaded" />
+	</xs:attributeGroup>
+
+	<xs:attributeGroup name="BeanAttributeGroup">
+		<xs:attribute name="id" type="xs:string" use="required" />
+		<xs:attribute name="scope" type="xs:string" />
+	</xs:attributeGroup>
+
 	<xs:element name="disruptor">
 		<xs:annotation>
 			<xs:appinfo>
@@ -37,17 +60,8 @@
 			</xs:appinfo>
 		</xs:annotation>
 		<xs:complexType>
-			<xs:attribute name="id" type="xs:string" use="required" />
-			<xs:attribute name="scope" type="xs:string" />
-			<xs:attribute name="event-factory" type="xs:string">
-				<xs:annotation>
-					<xs:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="com.lmax.disruptor.EventFactory" />
-						</tool:annotation>
-					</xs:appinfo>
-				</xs:annotation>
-			</xs:attribute>
+			<xs:attributeGroup ref="RingBufferConfigurationAttributeGroup" />
+			<xs:attributeGroup ref="BeanAttributeGroup"/>			
 			<xs:attribute name="executor" type="xs:string">
 				<xs:annotation>
 					<xs:appinfo>
@@ -57,12 +71,20 @@
 					</xs:appinfo>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="buffer-size" type="xs:positiveInteger"
-				default="1024" />
-			<xs:attribute name="wait-strategy" type="WaitStrategyType"
-				default="blocking" />
-			<xs:attribute name="claim-strategy" type="ClaimStrategyType"
-				default="multi-threaded" />
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="ring-buffer">
+		<xs:annotation>
+			<xs:appinfo>
+				<tool:annotation>
+					<tool:exports type="com.lmax.disruptor.RingBuffer" />
+				</tool:annotation>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attributeGroup ref="BeanAttributeGroup"/>			
+			<xs:attributeGroup ref="RingBufferConfigurationAttributeGroup" />
 		</xs:complexType>
 	</xs:element>
 
@@ -75,8 +97,7 @@
 			</xs:appinfo>
 		</xs:annotation>
 		<xs:complexType>
-			<xs:attribute name="id" type="xs:string" use="required" />
-			<xs:attribute name="scope" type="xs:string" />
+			<xs:attributeGroup ref="BeanAttributeGroup"/>			
 			<xs:attribute name="disruptor" type="xs:string" use="required">
 				<xs:annotation>
 					<xs:appinfo>
@@ -98,8 +119,7 @@
 			</xs:appinfo>
 		</xs:annotation>
 		<xs:complexType>
-			<xs:attribute name="id" type="xs:string" use="required" />
-			<xs:attribute name="scope" type="xs:string" />
+			<xs:attributeGroup ref="BeanAttributeGroup"/>			
 		</xs:complexType>
 	</xs:element>
 

@@ -12,4 +12,7 @@
 
 	<int-disruptor:channel id="channel1" disruptor="disruptor" />
 
+	<int-disruptor:ring-buffer id="ring-buffer"
+		buffer-size="512" claim-strategy="multi-threaded" wait-strategy="busy-spin" />
+
 </beans>
