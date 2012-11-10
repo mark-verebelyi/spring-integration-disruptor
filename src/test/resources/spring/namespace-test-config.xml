@@ -14,5 +14,7 @@
 
 	<int-disruptor:ring-buffer id="ring-buffer"
 		buffer-size="512" claim-strategy="multi-threaded" wait-strategy="busy-spin" />
+		
+	<int-disruptor:messaging-event-factory id="eventFactory"/>
 
 </beans>

@@ -6,15 +6,8 @@ import org.springframework.integration.disruptor.MessagingEvent;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
-import com.lmax.disruptor.BlockingWaitStrategy;
-import com.lmax.disruptor.BusySpinWaitStrategy;
 import com.lmax.disruptor.ClaimStrategy;
-import com.lmax.disruptor.MultiThreadedClaimStrategy;
-import com.lmax.disruptor.MultiThreadedLowContentionClaimStrategy;
-import com.lmax.disruptor.SingleThreadedClaimStrategy;
-import com.lmax.disruptor.SleepingWaitStrategy;
 import com.lmax.disruptor.WaitStrategy;
-import com.lmax.disruptor.YieldingWaitStrategy;
 
 abstract class AbstractRingBufferParser extends AbstractBeanDefinitionParser {
 
@@ -30,29 +23,11 @@ abstract class AbstractRingBufferParser extends AbstractBeanDefinitionParser {
 	}
 
 	private static ClaimStrategy parseClaimStrategy(final String claimStrategy, final int bufferSize) {
-		if ("multi-threaded".equals(claimStrategy)) {
-			return new MultiThreadedClaimStrategy(bufferSize);
-		} else if ("multi-threaded-low-contention".equals(claimStrategy)) {
-			return new MultiThreadedLowContentionClaimStrategy(bufferSize);
-		} else if ("single-threaded".equals(claimStrategy)) {
-			return new SingleThreadedClaimStrategy(bufferSize);
-		} else {
-			return null;
-		}
+		return ClaimStrategies.forName(claimStrategy, bufferSize);
 	}
 
 	private static WaitStrategy parseWaitStrategy(final String waitStrategy) {
-		if ("blocking".equals(waitStrategy)) {
-			return new BlockingWaitStrategy();
-		} else if ("busy-spin".equals(waitStrategy)) {
-			return new BusySpinWaitStrategy();
-		} else if ("sleeping".equals(waitStrategy)) {
-			return new SleepingWaitStrategy();
-		} else if ("yielding".equals(waitStrategy)) {
-			return new YieldingWaitStrategy();
-		} else {
-			return null;
-		}
+		return WaitStrategies.forName(waitStrategy);
 	}
 
 	protected void parseWaitStrategy(final Element element, final BeanDefinitionBuilder builder) {
