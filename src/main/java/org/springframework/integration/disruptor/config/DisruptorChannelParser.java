@@ -14,7 +14,7 @@ public class DisruptorChannelParser extends AbstractChannelParser {
 
 		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DisruptorChannel.class);
 
-		final String disruptor = element.getAttribute("disruptor");
+		final String disruptor = element.getAttribute(DisruptorNamespaceElements.CHANNEL_ATTRIBUTE_DISRUPTOR);
 		if (StringUtils.hasText(disruptor)) {
 			builder.addConstructorArgReference(disruptor);
 		} else {

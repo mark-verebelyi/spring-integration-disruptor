@@ -1,5 +1,7 @@
 package org.springframework.integration.disruptor.config;
 
+import java.util.concurrent.Executors;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.integration.disruptor.MessagingEvent;
@@ -11,14 +13,12 @@ import com.lmax.disruptor.WaitStrategy;
 
 abstract class AbstractRingBufferParser extends AbstractBeanDefinitionParser {
 
-	private static final int DEFAULT_RING_BUFFER_SIZE = 1024;
-
-	private static int parseBufferSize(final Element element) {
-		final String size = element.getAttribute("size");
+	private static Integer parseBufferSize(final Element element) {
+		final String size = element.getAttribute(DisruptorNamespaceElements.RING_BUFFER_ATTRIBUTE_SIZE);
 		if (StringUtils.hasText(size)) {
 			return Integer.parseInt(size);
 		} else {
-			return DEFAULT_RING_BUFFER_SIZE;
+			return null;
 		}
 	}
 
@@ -31,7 +31,7 @@ abstract class AbstractRingBufferParser extends AbstractBeanDefinitionParser {
 	}
 
 	protected void parseWaitStrategy(final Element element, final BeanDefinitionBuilder builder) {
-		final String waitStrategy = element.getAttribute("wait-strategy");
+		final String waitStrategy = element.getAttribute(DisruptorNamespaceElements.RING_BUFFER_ATTRIBUTE_WAIT_STRATEGY);
 		if (StringUtils.hasText(waitStrategy)) {
 			builder.addConstructorArgValue(parseWaitStrategy(waitStrategy));
 		}
@@ -39,14 +39,14 @@ abstract class AbstractRingBufferParser extends AbstractBeanDefinitionParser {
 
 	protected void parseClaimStrategy(final Element element, final BeanDefinitionBuilder builder) {
 		final int bufferSize = parseBufferSize(element);
-		final String claimStrategy = element.getAttribute("claim-strategy");
+		final String claimStrategy = element.getAttribute(DisruptorNamespaceElements.RING_BUFFER_ATTRIBUTE_CLAIM_STRATEGY);
 		if (StringUtils.hasText(claimStrategy)) {
 			builder.addConstructorArgValue(parseClaimStrategy(claimStrategy, bufferSize));
 		}
 	}
 
 	protected void parseEventFactory(final Element element, final BeanDefinitionBuilder builder) {
-		final String eventFactory = element.getAttribute("event-factory");
+		final String eventFactory = element.getAttribute(DisruptorNamespaceElements.RING_BUFFER_ATTRIBUTE_EVENT_FACTORY);
 		if (StringUtils.hasText(eventFactory)) {
 			builder.addConstructorArgReference(eventFactory);
 		} else {
@@ -54,4 +54,12 @@ abstract class AbstractRingBufferParser extends AbstractBeanDefinitionParser {
 		}
 	}
 
+	protected void parseExecutor(final Element element, final BeanDefinitionBuilder builder) {
+		final String executor = element.getAttribute(DisruptorNamespaceElements.DISRUPTOR_ATTRIBUTE_EXECUTOR);
+		if (StringUtils.hasText(executor)) {
+			builder.addConstructorArgReference(executor);
+		} else {
+			builder.addConstructorArgValue(Executors.newSingleThreadExecutor());
+		}
+	}
 }

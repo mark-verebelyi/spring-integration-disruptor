@@ -9,6 +9,7 @@
 	<configs>
 		<config>src/test/resources/spring/namespace-test-config.xml</config>
 		<config>src/test/resources/spring/simple-disruptor-channel-test-config.xml</config>
+		<config>src/test/resources/spring/ring-buffer-1-test-config.xml</config>
 	</configs>
 	<configSets>
 	</configSets>
