@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-disruptor="http://www.springframework.org/schema/integration/disruptor"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/disruptor http://www.springframework.org/schema/integration/disruptor/spring-integration-disruptor-0.1.xsd">
+
+	<int-disruptor:workflow event-factory="" event-type="" id="" executor="">
+		<int-disruptor:publisher-channels>
+			<int-disruptor:publisher-channel ref=""/>
+		</int-disruptor:publisher-channels>
+		<int-disruptor:handler-groups>
+			<int-disruptor:handler-group group="group1">
+				<int-disruptor:handler ref=""/>
+				<int-disruptor:handler ref=""/>
+			</int-disruptor:handler-group>
+			<int-disruptor:handler-group group="group2">
+				<int-disruptor:handler ref=""/>
+			</int-disruptor:handler-group>
+			<int-disruptor:handler-group group="group3" wait-for="group1,group2">
+				<int-disruptor:handler ref=""/>
+				<int-disruptor:handler ref=""/>
+				<int-disruptor:handler ref=""/>
+			</int-disruptor:handler-group>			
+		</int-disruptor:handler-groups>
+	</int-disruptor:workflow>
+
+</beans>

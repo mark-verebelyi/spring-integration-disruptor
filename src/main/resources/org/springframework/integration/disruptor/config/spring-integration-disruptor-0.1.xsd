@@ -61,7 +61,7 @@
 		</xs:annotation>
 		<xs:complexType>
 			<xs:attributeGroup ref="RingBufferConfigurationAttributeGroup" />
-			<xs:attributeGroup ref="BeanAttributeGroup"/>			
+			<xs:attributeGroup ref="BeanAttributeGroup" />
 			<xs:attribute name="executor" type="xs:string">
 				<xs:annotation>
 					<xs:appinfo>
@@ -83,7 +83,7 @@
 			</xs:appinfo>
 		</xs:annotation>
 		<xs:complexType>
-			<xs:attributeGroup ref="BeanAttributeGroup"/>			
+			<xs:attributeGroup ref="BeanAttributeGroup" />
 			<xs:attributeGroup ref="RingBufferConfigurationAttributeGroup" />
 		</xs:complexType>
 	</xs:element>
@@ -97,7 +97,7 @@
 			</xs:appinfo>
 		</xs:annotation>
 		<xs:complexType>
-			<xs:attributeGroup ref="BeanAttributeGroup"/>			
+			<xs:attributeGroup ref="BeanAttributeGroup" />
 			<xs:attribute name="disruptor" type="xs:string" use="required">
 				<xs:annotation>
 					<xs:appinfo>
@@ -119,7 +119,51 @@
 			</xs:appinfo>
 		</xs:annotation>
 		<xs:complexType>
-			<xs:attributeGroup ref="BeanAttributeGroup"/>			
+			<xs:attributeGroup ref="BeanAttributeGroup" />
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="workflow">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="publisher-channels">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="publisher-channel" minOccurs="1" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:attribute name="ref" type="xs:string" use="required" />
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="handler-groups">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="handler-group" minOccurs="1"
+								maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="handler" minOccurs="1" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:attribute name="ref" type="xs:string" use="required" />
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="group" type="xs:string" use="required" />
+									<xs:attribute name="wait-for" type="xs:string" />
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attributeGroup ref="BeanAttributeGroup" />
+			<xs:attribute name="buffer-size" type="xs:positiveInteger"
+				default="1024" />
+			<xs:attribute name="event-type" type="xs:string" use="required" />
+			<xs:attribute name="event-factory" type="xs:string" use="required" />
+			<xs:attribute name="executor" type="xs:string" use="required" />
 		</xs:complexType>
 	</xs:element>
 
