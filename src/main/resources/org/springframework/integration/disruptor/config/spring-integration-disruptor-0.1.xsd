@@ -126,7 +126,7 @@
 	<xs:element name="workflow">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element name="publisher-channels">
+				<xs:element name="publisher-channels" minOccurs="0" maxOccurs="1">
 					<xs:complexType>
 						<xs:sequence>
 							<xs:element name="publisher-channel" minOccurs="1" maxOccurs="unbounded">
