@@ -12,7 +12,7 @@ public class DependencyGraphUnitTest {
 
 	@Test
 	public void DependsOnNone_1() {
-		final DependencyGraph<Object> graph = new DependencyGraph<Object>();
+		final DependencyGraphImpl<Object> graph = new DependencyGraphImpl<Object>();
 		graph.addDependency("group1").dependsOnNone();
 		assertEquals("Size <> 1", 1, graph.getSize());
 		assertEquals("Dependencies Size <> 0", 0, graph.getDependencies("group1").size());
@@ -21,7 +21,7 @@ public class DependencyGraphUnitTest {
 
 	@Test
 	public void DependsOnNone_2() {
-		final DependencyGraph<Object> graph = new DependencyGraph<Object>();
+		final DependencyGraphImpl<Object> graph = new DependencyGraphImpl<Object>();
 		graph.addDependency("group1").dependsOnNone();
 		graph.addDependency("group2").dependsOn("group1");
 		assertEquals("Size <> 2", 2, graph.getSize());
@@ -31,7 +31,7 @@ public class DependencyGraphUnitTest {
 
 	@Test
 	public void Add_Dependency_1() {
-		final DependencyGraph<Object> graph = new DependencyGraph<Object>();
+		final DependencyGraphImpl<Object> graph = new DependencyGraphImpl<Object>();
 		graph.addDependency("group1").dependsOn("group2");
 		assertEquals("Size <> 2", 2, graph.getSize());
 		assertEquals("Dependencies Size <> 1", 1, graph.getDependencies("group1").size());
@@ -40,7 +40,7 @@ public class DependencyGraphUnitTest {
 
 	@Test
 	public void Add_Dependency_2() {
-		final DependencyGraph<Object> graph = new DependencyGraph<Object>();
+		final DependencyGraphImpl<Object> graph = new DependencyGraphImpl<Object>();
 		graph.addDependency("group1").dependsOn("group2");
 		graph.addDependency("group1").dependsOn("group3");
 		graph.addDependency("group1").dependsOn("group4");
@@ -51,7 +51,7 @@ public class DependencyGraphUnitTest {
 
 	@Test
 	public void Add_Dependency_3() {
-		final DependencyGraph<Object> graph = new DependencyGraph<Object>();
+		final DependencyGraphImpl<Object> graph = new DependencyGraphImpl<Object>();
 		graph.addDependency("group1").dependsOn("group2");
 		graph.addDependency("group2").dependsOn("group3");
 		graph.addDependency("group3").dependsOn("group4");
@@ -68,7 +68,7 @@ public class DependencyGraphUnitTest {
 
 	@Test
 	public void Orphan_Dependencies_1() {
-		final DependencyGraph<Object> graph = new DependencyGraph<Object>();
+		final DependencyGraphImpl<Object> graph = new DependencyGraphImpl<Object>();
 		graph.addDependency("group1").dependsOn("group2");
 		assertEquals("Orphan Dependencies Size <> 1", 1, graph.getOrphanDependencies().size());
 		assertTrue("Wrong orphan dependencies", graph.getOrphanDependencies().contains("group2"));
@@ -76,7 +76,7 @@ public class DependencyGraphUnitTest {
 
 	@Test
 	public void Orphan_Dependencies_2() {
-		final DependencyGraph<Object> graph = new DependencyGraph<Object>();
+		final DependencyGraphImpl<Object> graph = new DependencyGraphImpl<Object>();
 		graph.addDependency("group1").dependsOn("group2");
 		graph.addDependency("group2").dependsOn("group3");
 		graph.addDependency("group4").dependsOn("group3");
@@ -87,7 +87,7 @@ public class DependencyGraphUnitTest {
 
 	@Test
 	public void Inverse_1() {
-		final DependencyGraph<Object> graph = new DependencyGraph<Object>();
+		final DependencyGraphImpl<Object> graph = new DependencyGraphImpl<Object>();
 		graph.addDependency("group1").dependsOn("group2");
 		final DependencyGraph<Object> inverse = graph.inverse();
 		assertEquals("Size <> 2", 2, inverse.getSize());
@@ -99,13 +99,13 @@ public class DependencyGraphUnitTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void AddData_1() {
-		final DependencyGraph<Object> graph = new DependencyGraph<Object>();
+		final DependencyGraphImpl<Object> graph = new DependencyGraphImpl<Object>();
 		graph.putData("group1", new Object());
 	}
 
 	@Test
 	public void AddData_2() {
-		final DependencyGraph<Object> graph = new DependencyGraph<Object>();
+		final DependencyGraphImpl<Object> graph = new DependencyGraphImpl<Object>();
 		graph.addDependency("group1").dependsOnNone();
 		final Object data = new Object();
 		graph.putData("group1", data);
@@ -114,7 +114,7 @@ public class DependencyGraphUnitTest {
 
 	@Test
 	public void GetSymbolicNames_1() {
-		final DependencyGraph<Object> graph = new DependencyGraph<Object>();
+		final DependencyGraphImpl<Object> graph = new DependencyGraphImpl<Object>();
 		graph.addDependency("group1").dependsOnNone();
 		graph.addDependency("group2").dependsOn("group1");
 		graph.addDependency("group3").dependsOn("group4");
