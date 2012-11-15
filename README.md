@@ -10,10 +10,10 @@ The planned features are the following:
 * Extensive XML namespace support
 * RingBuffer/Disruptor-backed MessageChannels, Adapters, Gateways
 
-   <int-disruptor:disruptor id="disruptor" buffer-size="128" wait-strategy="yielding" claim-strategy="single-threaded" />
+`<int-disruptor:disruptor id="disruptor" buffer-size="128" wait-strategy="yielding" claim-strategy="single-threaded" />`
 
-   <int-disruptor:channel id="channel1" disruptor="disruptor" />
+`<int-disruptor:channel id="channel1" disruptor="disruptor" />`
 
-   <int-disruptor:ring-buffer id="ring-buffer" buffer-size="512" claim-strategy="multi-threaded" wait-strategy="busy-spin" />
+`<int-disruptor:ring-buffer id="ring-buffer" buffer-size="512" claim-strategy="multi-threaded" wait-strategy="busy-spin" />`
 
-   <int-disruptor:messaging-event-factory id="eventFactory"/>
+`<int-disruptor:messaging-event-factory id="eventFactory"/>`
