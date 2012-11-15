@@ -1,9 +1,13 @@
-package org.springframework.integration.disruptor.workflow;
+package org.springframework.integration.disruptor.config.workflow;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.springframework.integration.disruptor.config.workflow.CycleDetector;
+import org.springframework.integration.disruptor.config.workflow.CycleDetectorImpl;
+import org.springframework.integration.disruptor.config.workflow.DependencyGraph;
+import org.springframework.integration.disruptor.config.workflow.DependencyGraphImpl;
 
 public class CycleDetectorUnitTest {
 

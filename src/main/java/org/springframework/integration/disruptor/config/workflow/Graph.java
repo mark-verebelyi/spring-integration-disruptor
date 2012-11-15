@@ -1,8 +1,8 @@
-package org.springframework.integration.disruptor.workflow;
+package org.springframework.integration.disruptor.config.workflow;
 
 import java.util.List;
 
-public interface Graph {
+interface Graph {
 
 	int getSize();
 

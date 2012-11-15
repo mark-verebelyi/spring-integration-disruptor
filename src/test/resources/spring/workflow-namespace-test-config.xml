@@ -16,16 +16,31 @@
 		</int-disruptor:publisher-channels>
 		<int-disruptor:handler-groups>
 			<int-disruptor:handler-group group="group1">
-				<int-disruptor:handler ref=""/>
-				<int-disruptor:handler ref=""/>
+				<int-disruptor:handler ref="handler1"/>
+				<int-disruptor:handler ref="handler2"/>
 			</int-disruptor:handler-group>
 			<int-disruptor:handler-group group="group2">
-				<int-disruptor:handler ref=""/>
+				<int-disruptor:handler ref="handler3"/>
 			</int-disruptor:handler-group>
-			<int-disruptor:handler-group group="group3" wait-for="group1,group2">
-				<int-disruptor:handler ref=""/>
-				<int-disruptor:handler ref=""/>
-				<int-disruptor:handler ref=""/>
+			<int-disruptor:handler-group group="group3">
+				<int-disruptor:handler ref="handler4"/>
+				<int-disruptor:handler ref="handler5"/>
+				<int-disruptor:handler ref="handler6"/>
+			</int-disruptor:handler-group>			
+			<int-disruptor:handler-group group="group4" wait-for="group1,group2">
+				<int-disruptor:handler ref="handler7"/>
+			</int-disruptor:handler-group>			
+			<int-disruptor:handler-group group="group5" wait-for="group3">
+				<int-disruptor:handler ref="handler8"/>
+			</int-disruptor:handler-group>			
+			<int-disruptor:handler-group group="group6" wait-for="group4">
+				<int-disruptor:handler ref="handler9"/>
+			</int-disruptor:handler-group>			
+			<int-disruptor:handler-group group="group7" wait-for="group4,group5">
+				<int-disruptor:handler ref="handler10"/>
+			</int-disruptor:handler-group>			
+			<int-disruptor:handler-group group="group8" wait-for="group5">
+				<int-disruptor:handler ref="handler11"/>
 			</int-disruptor:handler-group>			
 		</int-disruptor:handler-groups>
 	</int-disruptor:workflow>

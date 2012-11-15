@@ -1,10 +1,10 @@
-package org.springframework.integration.disruptor.workflow;
+package org.springframework.integration.disruptor.config.workflow;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
-public final class DependencyTopologyBuilderImpl implements DependencyTopologyBuilder {
+final class DependencyTopologyBuilderImpl implements DependencyTopologyBuilder {
 
 	public List<String> buildTopology(final DependencyGraph<?> graph) {
 		final TopologyBuilderContext tbc = new TopologyBuilderContext(graph);

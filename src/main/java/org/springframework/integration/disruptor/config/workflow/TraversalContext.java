@@ -1,4 +1,4 @@
-package org.springframework.integration.disruptor.workflow;
+package org.springframework.integration.disruptor.config.workflow;
 
 abstract class TraversalContext {
 

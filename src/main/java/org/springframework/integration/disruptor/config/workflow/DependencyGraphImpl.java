@@ -1,4 +1,4 @@
-package org.springframework.integration.disruptor.workflow;
+package org.springframework.integration.disruptor.config.workflow;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,9 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.integration.disruptor.config.HandlerGroup;
 import org.springframework.util.Assert;
 
-public final class DependencyGraphImpl<T> implements DependencyGraph<T> {
+final class DependencyGraphImpl<T> implements DependencyGraph<T> {
 
 	private int size;
 	private final List<List<Integer>> adjacencyList;
@@ -148,4 +149,15 @@ public final class DependencyGraphImpl<T> implements DependencyGraph<T> {
 	public List<Integer> adjacentKeys(final Integer key) {
 		return this.adjacencyList.get(key);
 	}
+
+	public static <T> DependencyGraph<T> forHandlerGroups(final Iterable<HandlerGroup> handlerGroups) {
+		final DependencyGraph<T> graph = new DependencyGraphImpl<T>();
+		for (final HandlerGroup handlerGroup : handlerGroups) {
+			for (final String dependency : handlerGroup.getDependencies()) {
+				graph.addDependency(handlerGroup.getName()).dependsOn(dependency);
+			}
+		}
+		return graph;
+	}
+
 }

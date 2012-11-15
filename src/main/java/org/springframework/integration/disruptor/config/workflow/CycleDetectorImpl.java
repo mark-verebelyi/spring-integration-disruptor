@@ -1,6 +1,6 @@
-package org.springframework.integration.disruptor.workflow;
+package org.springframework.integration.disruptor.config.workflow;
 
-public final class CycleDetectorImpl implements CycleDetector {
+final class CycleDetectorImpl implements CycleDetector {
 
 	public boolean hasCycle(final Graph graph) {
 		final CycleDetectionContext cdc = new CycleDetectionContext(graph);

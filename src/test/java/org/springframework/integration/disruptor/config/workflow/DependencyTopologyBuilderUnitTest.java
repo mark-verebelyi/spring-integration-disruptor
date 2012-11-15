@@ -1,4 +1,4 @@
-package org.springframework.integration.disruptor.workflow;
+package org.springframework.integration.disruptor.config.workflow;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -7,6 +7,10 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import org.junit.Test;
+import org.springframework.integration.disruptor.config.workflow.DependencyGraph;
+import org.springframework.integration.disruptor.config.workflow.DependencyGraphImpl;
+import org.springframework.integration.disruptor.config.workflow.DependencyTopologyBuilder;
+import org.springframework.integration.disruptor.config.workflow.DependencyTopologyBuilderImpl;
 
 public class DependencyTopologyBuilderUnitTest {
 
