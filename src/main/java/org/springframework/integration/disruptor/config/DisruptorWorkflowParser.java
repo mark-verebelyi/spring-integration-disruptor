@@ -22,9 +22,15 @@ public final class DisruptorWorkflowParser extends AbstractBeanDefinitionParser 
 	@Override
 	protected AbstractBeanDefinition parseInternal(final Element element, final ParserContext parserContext) {
 		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DisruptorWorkflowFactoryBean.class);
+		this.parseExecutorName(element, parserContext, builder);
 		this.parsePublisherChannelNames(element, parserContext, builder);
 		this.parseHandlerGroups(element, parserContext, builder);
 		return builder.getBeanDefinition();
+	}
+
+	private void parseExecutorName(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
+		final String executorAttribute = element.getAttribute("executor");
+		builder.addPropertyValue("executorName", executorAttribute);
 	}
 
 	private void parseHandlerGroups(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
@@ -33,7 +39,7 @@ public final class DisruptorWorkflowParser extends AbstractBeanDefinitionParser 
 			final List<Element> handlerGroupElements = DomUtils.getChildElementsByTagName(handlerGroupsElement, "handler-group");
 			if (handlerGroupElements.size() > 0) {
 				final Map<String, HandlerGroup> handlerGroups = this.parseHandlerGroups(handlerGroupElements, parserContext, builder);
-				builder.addPropertyValue("handlerGroups", handlerGroups);
+				builder.addConstructorArgValue(handlerGroups);
 			} else {
 				parserContext.getReaderContext().error("At least 1 'handler-group' is mandatory for 'handler-groups'", handlerGroupElements);
 			}
@@ -57,19 +63,21 @@ public final class DisruptorWorkflowParser extends AbstractBeanDefinitionParser 
 	}
 
 	private HandlerGroup parseHandlerGroupElement(final Element handlerGroupElement, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
+		final String group = this.parseHandlerGroupName(handlerGroupElement, parserContext);
+		final List<String> dependencies = this.parseHandlerGroupDependencies(handlerGroupElement);
+		final List<String> handlerBeanNames = this.parseHandlerBeanNames(handlerGroupElement, parserContext);
+		return this.newHandlerGroup(group, dependencies, handlerBeanNames);
+	}
 
-		final String group = handlerGroupElement.getAttribute("group");
-		if (!StringUtils.hasText(group)) {
-			parserContext.getReaderContext().error("'group' attribute is mandatory for 'handler-group'", handlerGroupElement);
-		}
+	private HandlerGroup newHandlerGroup(final String group, final List<String> dependencies, final List<String> handlerBeanNames) {
+		final HandlerGroup handlerGroup = new HandlerGroup();
+		handlerGroup.setName(group);
+		handlerGroup.setDependencies(dependencies);
+		handlerGroup.setHandlerBeanNames(handlerBeanNames);
+		return handlerGroup;
+	}
 
-		String waitFor = handlerGroupElement.getAttribute("wait-for");
-		if (!StringUtils.hasText(waitFor)) {
-			waitFor = "ring-buffer";
-		}
-
-		final List<String> dependencies = Arrays.asList(waitFor.split(","));
-
+	private List<String> parseHandlerBeanNames(final Element handlerGroupElement, final ParserContext parserContext) {
 		final List<String> handlerBeanNames = new ArrayList<String>();
 		final List<Element> handlerElements = DomUtils.getChildElementsByTagName(handlerGroupElement, "handler");
 		if (handlerElements.size() > 0) {
@@ -85,14 +93,29 @@ public final class DisruptorWorkflowParser extends AbstractBeanDefinitionParser 
 		} else {
 			parserContext.getReaderContext().error("At least 1 'handler' is mandatory for 'handler-group'", handlerGroupElement);
 		}
+		return handlerBeanNames;
+	}
 
-		final HandlerGroup handlerGroup = new HandlerGroup();
-		handlerGroup.setName(group);
-		handlerGroup.setDependencies(dependencies);
-		handlerGroup.setHandlerBeanNames(handlerBeanNames);
+	private List<String> parseHandlerGroupDependencies(final Element handlerGroupElement) {
+		final String waitFor = this.parseHandlerWaitFor(handlerGroupElement);
+		final List<String> dependencies = Arrays.asList(waitFor.split(","));
+		return dependencies;
+	}
 
-		return handlerGroup;
+	private String parseHandlerWaitFor(final Element handlerGroupElement) {
+		String waitFor = handlerGroupElement.getAttribute("wait-for");
+		if (!StringUtils.hasText(waitFor)) {
+			waitFor = "ring-buffer";
+		}
+		return waitFor;
+	}
 
+	private String parseHandlerGroupName(final Element handlerGroupElement, final ParserContext parserContext) {
+		final String group = handlerGroupElement.getAttribute("group");
+		if (!StringUtils.hasText(group)) {
+			parserContext.getReaderContext().error("'group' attribute is mandatory for 'handler-group'", handlerGroupElement);
+		}
+		return group;
 	}
 
 	private void parsePublisherChannelNames(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {

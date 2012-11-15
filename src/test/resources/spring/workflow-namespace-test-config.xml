@@ -9,7 +9,7 @@
 	<int:channel id="channel1"/>
 	<int:channel id="channel2"/>
 
-	<int-disruptor:workflow event-factory="" event-type="" id="workflow" executor="">
+	<int-disruptor:workflow event-factory="" event-type="" id="workflow">
 		<int-disruptor:publisher-channels>
 			<int-disruptor:publisher-channel ref="channel1"/>
 			<int-disruptor:publisher-channel ref="channel2"/>

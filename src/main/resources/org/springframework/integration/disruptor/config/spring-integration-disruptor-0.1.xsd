@@ -163,7 +163,7 @@
 				default="1024" />
 			<xs:attribute name="event-type" type="xs:string" use="required" />
 			<xs:attribute name="event-factory" type="xs:string" use="required" />
-			<xs:attribute name="executor" type="xs:string" use="required" />
+			<xs:attribute name="executor" type="xs:string" />
 		</xs:complexType>
 	</xs:element>
 

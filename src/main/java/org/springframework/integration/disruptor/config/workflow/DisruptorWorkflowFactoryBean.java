@@ -1,13 +1,14 @@
 package org.springframework.integration.disruptor.config.workflow;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
@@ -20,6 +21,7 @@ import org.springframework.integration.disruptor.DisruptorWorkflow;
 import org.springframework.integration.disruptor.MessagingEvent;
 import org.springframework.integration.disruptor.config.HandlerGroup;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.util.StringUtils;
 
 import com.lmax.disruptor.BatchEventProcessor;
 import com.lmax.disruptor.EventFactory;
@@ -31,7 +33,7 @@ import com.lmax.disruptor.SequenceBarrier;
 
 public final class DisruptorWorkflowFactoryBean implements FactoryBean<DisruptorWorkflow>, BeanFactoryAware, SmartLifecycle, InitializingBean {
 
-	private DisruptorWorkflow disruptorWorkflow;
+	private final Log log = LogFactory.getLog(this.getClass());
 
 	private BeanFactory beanFactory;
 
@@ -45,111 +47,161 @@ public final class DisruptorWorkflowFactoryBean implements FactoryBean<Disruptor
 		this.publisherChannelNames = publisherChannelNames;
 	}
 
-	private Map<String, HandlerGroup> handlerGroups = new HashMap<String, HandlerGroup>();
+	private String executorName;
 
-	public void setHandlerGroups(final Map<String, HandlerGroup> handlerGroups) {
-		this.handlerGroups = handlerGroups;
+	public void setExecutorName(final String executorName) {
+		this.executorName = executorName;
 	}
 
-	private final List<EventDrivenConsumer> consumers = new ArrayList<EventDrivenConsumer>();
+	private DisruptorWorkflow disruptorWorkflow;
+
+	private final Map<String, HandlerGroup> handlerGroups;
+	private final DependencyGraph<List<EventProcessor>> dependencyGraph;
+	private final DependencyGraph<List<EventProcessor>> inverseDependencyGraph;
+	private final List<EventDrivenConsumer> consumers;
 
 	public DisruptorWorkflow getObject() throws Exception {
-		System.out.println("DisruptorWorkflowFactoryBean.getObject()");
 		return this.disruptorWorkflow;
+	}
+
+	public DisruptorWorkflowFactoryBean(final Map<String, HandlerGroup> handlerGroups) {
+		this.handlerGroups = handlerGroups;
+		this.dependencyGraph = createDependencyGraph(this.handlerGroups.values());
+		this.inverseDependencyGraph = this.dependencyGraph.inverse();
+		this.consumers = new ArrayList<EventDrivenConsumer>();
 	}
 
 	public void afterPropertiesSet() throws Exception {
 
-		final ExecutorService executor = Executors.newCachedThreadPool();
-
-		System.out.println("DisruptorWorkflowFactoryBean.afterPropertiesSet()");
+		final ExecutorService executor = this.createExecutor();
 
 		final RingBuffer<MessagingEvent> ringBuffer = this.createRingBuffer();
-		final SequenceBarrier ringBufferBarrier = ringBuffer.newBarrier();
+		this.setHandlers(ringBuffer);
+		this.setGatingSequences(ringBuffer);
 
-		final DependencyGraph<List<? extends EventProcessor>> dependencyGraph = DependencyGraphImpl.forHandlerGroups(this.handlerGroups.values());
-
-		final CycleDetector cycleDetector = new CycleDetectorImpl();
-		if (cycleDetector.hasCycle(dependencyGraph)) {
-			throw new BeanCreationException("Circular 'handler-group' dependency detected while creating DisruptorWorkflow");
-		}
-
-		final DependencyGraph<List<? extends EventProcessor>> inverseDependencyGraph = dependencyGraph.inverse();
-
-		final DependencyTopologyBuilder topologyBuilder = new DependencyTopologyBuilderImpl();
-
-		final List<String> handlerGroupNames = topologyBuilder.buildTopology(inverseDependencyGraph);
-
-		for (final String handlerGroupName : handlerGroupNames) {
-			if ("ring-buffer".equals(handlerGroupName)) {
-				continue;
-			}
-
-			final HandlerGroup handlerGroup = this.handlerGroups.get(handlerGroupName);
-			if (handlerGroup.hasSingleDependency("ring-buffer")) {
-				final List<EventHandler<MessagingEvent>> eventHandlers = this.getEventHandlers(handlerGroup);
-				final List<BatchEventProcessor<MessagingEvent>> batchEventProcessors = new ArrayList<BatchEventProcessor<MessagingEvent>>();
-				for (final EventHandler<MessagingEvent> eventHandler : eventHandlers) {
-					final BatchEventProcessor<MessagingEvent> batchEventProcessor = new BatchEventProcessor<MessagingEvent>(ringBuffer, ringBufferBarrier,
-							eventHandler);
-					executor.submit(batchEventProcessor);
-					batchEventProcessors.add(batchEventProcessor);
-				}
-				dependencyGraph.putData(handlerGroupName, batchEventProcessors);
-			} else {
-				final Sequence[] barriers = toArray(this.findBarriers(dependencyGraph, handlerGroup));
-				final List<EventHandler<MessagingEvent>> eventHandlers = this.getEventHandlers(handlerGroup);
-				final List<BatchEventProcessor<MessagingEvent>> batchEventProcessors = new ArrayList<BatchEventProcessor<MessagingEvent>>();
-				for (final EventHandler<MessagingEvent> eventHandler : eventHandlers) {
-					final BatchEventProcessor<MessagingEvent> batchEventProcessor = new BatchEventProcessor<MessagingEvent>(ringBuffer,
-							ringBuffer.newBarrier(barriers), eventHandler);
-					executor.submit(batchEventProcessor);
-					batchEventProcessors.add(batchEventProcessor);
-				}
-				dependencyGraph.putData(handlerGroupName, batchEventProcessors);
-
-			}
-		}
-
-		final List<String> gatingDependencies = inverseDependencyGraph.getOrphanDependencies();
-
-		final Sequence[] gatingSequences = toArray(this.findGatingSequences(dependencyGraph, gatingDependencies));
-
-		ringBuffer.setGatingSequences(gatingSequences);
+		final List<EventProcessor> eventProcessors = this.collectEventProcessors();
 
 		if (this.disruptorWorkflow == null) {
-			this.disruptorWorkflow = new DisruptorWorkflow(ringBuffer);
+			this.disruptorWorkflow = new DisruptorWorkflow(ringBuffer, executor, eventProcessors);
 		}
 
 		this.registerEventDrivenConstumers();
 
 	}
 
+	private List<EventProcessor> collectEventProcessors() {
+		final List<String> topologyOrder = buildTopologyOrder(this.dependencyGraph);
+		final List<EventProcessor> eventProcessors = new ArrayList<EventProcessor>();
+		for (final String groupName : topologyOrder) {
+			if ("ring-buffer".equals(groupName)) {
+				continue;
+			}
+			eventProcessors.addAll(this.dependencyGraph.getData(groupName));
+		}
+		return eventProcessors;
+	}
+
+	private ExecutorService createExecutor() {
+		if (StringUtils.hasText(this.executorName)) {
+			this.log.info("Using ExecutorService for DisruptorWorkflow with name '" + this.executorName + "'.");
+			return this.beanFactory.getBean(this.executorName, ExecutorService.class);
+		} else {
+			this.log.info("No bean named 'executor' has been explicitly defined. Therefore, a default ExecutorService will be created.");
+			return Executors.newCachedThreadPool();
+		}
+	}
+
+	private void setHandlers(final RingBuffer<MessagingEvent> ringBuffer) {
+		final List<String> handlerGroupNames = buildTopologyOrder(this.inverseDependencyGraph);
+		for (final String handlerGroupName : handlerGroupNames) {
+			final HandlerGroup handlerGroup = this.handlerGroups.get(handlerGroupName);
+			if ("ring-buffer".equals(handlerGroupName)) {
+				continue;
+			} else {
+				final SequenceBarrier barrier = this.createSequenceBarrier(ringBuffer, this.dependencyGraph, handlerGroup);
+				final List<EventProcessor> eventProcessors = this.createEventProcessors(ringBuffer, handlerGroup, barrier);
+				this.dependencyGraph.putData(handlerGroupName, eventProcessors);
+			}
+		}
+	}
+
+	private void setGatingSequences(final RingBuffer<MessagingEvent> ringBuffer) {
+		final List<String> gatingDependencies = this.inverseDependencyGraph.getOrphanDependencies();
+		final Sequence[] gatingSequences = toArray(this.findGatingSequences(gatingDependencies));
+		ringBuffer.setGatingSequences(gatingSequences);
+	}
+
+	private static DependencyGraph<List<EventProcessor>> createDependencyGraph(final Iterable<HandlerGroup> handlerGroups) {
+		final DependencyGraph<List<EventProcessor>> dependencyGraph = DependencyGraphImpl.forHandlerGroups(handlerGroups);
+		detectDependencyCycle(dependencyGraph);
+		return dependencyGraph;
+	}
+
+	private static void detectDependencyCycle(final DependencyGraph<List<EventProcessor>> dependencyGraph) {
+		final CycleDetector cycleDetector = new CycleDetectorImpl();
+		if (cycleDetector.hasCycle(dependencyGraph)) {
+			throw new BeanCreationException("Circular 'handler-group' dependency detected while creating DisruptorWorkflow");
+		}
+	}
+
+	private static List<String> buildTopologyOrder(final DependencyGraph<?> inverseDependencyGraph) {
+		final DependencyTopologyBuilder topologyBuilder = new DependencyTopologyBuilderImpl();
+		return topologyBuilder.buildTopology(inverseDependencyGraph);
+	}
+
+	private SequenceBarrier createSequenceBarrier(final RingBuffer<MessagingEvent> ringBuffer, final DependencyGraph<List<EventProcessor>> dependencyGraph,
+			final HandlerGroup handlerGroup) {
+		if (handlerGroup.hasSingleDependency("ring-buffer")) {
+			return ringBuffer.newBarrier();
+		} else {
+			final Sequence[] barriers = toArray(this.findBarriers(handlerGroup));
+			return ringBuffer.newBarrier(barriers);
+		}
+	}
+
+	private List<EventProcessor> createEventProcessors(final RingBuffer<MessagingEvent> ringBuffer, final HandlerGroup handlerGroup,
+			final SequenceBarrier barrier) {
+		final List<EventHandler<MessagingEvent>> eventHandlers = this.getEventHandlers(handlerGroup);
+		final List<EventProcessor> eventProcessors = new ArrayList<EventProcessor>();
+		for (final EventHandler<MessagingEvent> eventHandler : eventHandlers) {
+			final EventProcessor eventProcessor = new BatchEventProcessor<MessagingEvent>(ringBuffer, barrier, eventHandler);
+			eventProcessors.add(eventProcessor);
+		}
+		return eventProcessors;
+	}
+
 	private static Sequence[] toArray(final List<Sequence> sequences) {
 		return sequences.toArray(new Sequence[sequences.size()]);
 	}
 
-	private List<Sequence> findGatingSequences(final DependencyGraph<List<? extends EventProcessor>> dependencyGraph, final List<String> gatingDependencies) {
+	private List<Sequence> findGatingSequences(final List<String> gatingDependencies) {
 		final List<Sequence> sequences = new ArrayList<Sequence>();
 		for (final String gatingDependency : gatingDependencies) {
-			sequences.addAll(this.findBarriers(dependencyGraph, this.handlerGroups.get(gatingDependency)));
+			final HandlerGroup handlerGroup = this.handlerGroups.get(gatingDependency);
+			final List<Sequence> gatingSequences = this.findBarriers(handlerGroup);
+			sequences.addAll(gatingSequences);
 		}
 		return sequences;
 	}
 
-	private List<Sequence> findBarriers(final DependencyGraph<List<? extends EventProcessor>> dependencyGraph, final HandlerGroup handlerGroup) {
-		final List<String> dependencies = dependencyGraph.getDependencies(handlerGroup.getName());
-		final List<EventProcessor> allDependeeEventProcessors = new ArrayList<EventProcessor>();
-		for (final String dependency : dependencies) {
-			final List<? extends EventProcessor> dependeeEventProcessors = dependencyGraph.getData(dependency);
-			allDependeeEventProcessors.addAll(dependeeEventProcessors);
-
-		}
+	private List<Sequence> findBarriers(final HandlerGroup handlerGroup) {
+		final List<EventProcessor> allDependeeEventProcessors = this.getDependeeEventProcessors(handlerGroup);
 		final List<Sequence> sequences = new ArrayList<Sequence>(allDependeeEventProcessors.size());
 		for (final EventProcessor dependeeEventProcessors : allDependeeEventProcessors) {
 			sequences.add(dependeeEventProcessors.getSequence());
 		}
 		return sequences;
+	}
+
+	private List<EventProcessor> getDependeeEventProcessors(final HandlerGroup handlerGroup) {
+		final List<String> dependencies = this.dependencyGraph.getDependencies(handlerGroup.getName());
+		final List<EventProcessor> allDependeeEventProcessors = new ArrayList<EventProcessor>();
+		for (final String dependency : dependencies) {
+			final List<EventProcessor> dependeeEventProcessors = this.dependencyGraph.getData(dependency);
+			allDependeeEventProcessors.addAll(dependeeEventProcessors);
+
+		}
+		return allDependeeEventProcessors;
 	}
 
 	public List<EventHandler<MessagingEvent>> getEventHandlers(final HandlerGroup handlerGroup) {
@@ -206,12 +258,10 @@ public final class DisruptorWorkflowFactoryBean implements FactoryBean<Disruptor
 	}
 
 	public boolean isRunning() {
-		System.out.println("DisruptorWorkflowFactoryBean.isRunning()");
 		return (this.disruptorWorkflow != null) && this.disruptorWorkflow.isRunning();
 	}
 
 	public int getPhase() {
-		System.out.println("DisruptorWorkflowFactoryBean.getPhase()");
 		return Integer.MIN_VALUE;
 	}
 
