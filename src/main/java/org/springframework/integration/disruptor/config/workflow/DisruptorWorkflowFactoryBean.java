@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.logging.Log;
@@ -53,6 +53,19 @@ public final class DisruptorWorkflowFactoryBean implements FactoryBean<Disruptor
 		this.executorName = executorName;
 	}
 
+	private Class<?> eventType;
+
+	public void setEventType(final Class<?> eventType) {
+		this.log.info("DisruptorWorkflow is accepting the following event type '" + eventType.getName() + "'.");
+		this.eventType = eventType;
+	}
+
+	private String eventFactoryName;
+
+	public void setEventFactoryName(final String eventFactoryName) {
+		this.eventFactoryName = eventFactoryName;
+	}
+
 	private DisruptorWorkflow disruptorWorkflow;
 
 	private final Map<String, HandlerGroup> handlerGroups;
@@ -73,7 +86,7 @@ public final class DisruptorWorkflowFactoryBean implements FactoryBean<Disruptor
 
 	public void afterPropertiesSet() throws Exception {
 
-		final ExecutorService executor = this.createExecutor();
+		final Executor executor = this.createExecutorService();
 
 		final RingBuffer<MessagingEvent> ringBuffer = this.createRingBuffer();
 		this.setHandlers(ringBuffer);
@@ -101,12 +114,12 @@ public final class DisruptorWorkflowFactoryBean implements FactoryBean<Disruptor
 		return eventProcessors;
 	}
 
-	private ExecutorService createExecutor() {
+	private Executor createExecutorService() {
 		if (StringUtils.hasText(this.executorName)) {
-			this.log.info("Using ExecutorService for DisruptorWorkflow with name '" + this.executorName + "'.");
-			return this.beanFactory.getBean(this.executorName, ExecutorService.class);
+			this.log.info("Configuring DisruptorWorkflow with Executor named '" + this.executorName + "'.");
+			return this.beanFactory.getBean(this.executorName, Executor.class);
 		} else {
-			this.log.info("No bean named 'executor' has been explicitly defined. Therefore, a default ExecutorService will be created.");
+			this.log.info("No bean named 'executor' has been explicitly defined. Therefore, a default Executor will be created.");
 			return Executors.newCachedThreadPool();
 		}
 	}

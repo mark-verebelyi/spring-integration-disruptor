@@ -12,7 +12,9 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.disruptor.MessagingEvent;
 import org.springframework.integration.disruptor.config.workflow.DisruptorWorkflowFactoryBean;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -22,15 +24,34 @@ public final class DisruptorWorkflowParser extends AbstractBeanDefinitionParser 
 	@Override
 	protected AbstractBeanDefinition parseInternal(final Element element, final ParserContext parserContext) {
 		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DisruptorWorkflowFactoryBean.class);
+		this.parseEventType(element, parserContext, builder);
+		this.parseEventFactoryName(element, parserContext, builder);
 		this.parseExecutorName(element, parserContext, builder);
 		this.parsePublisherChannelNames(element, parserContext, builder);
 		this.parseHandlerGroups(element, parserContext, builder);
 		return builder.getBeanDefinition();
 	}
 
+	private void parseEventFactoryName(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
+		final String eventFactoryAttribute = element.getAttribute("event-factory");
+		builder.addPropertyValue("eventFactoryName", eventFactoryAttribute);
+	}
+
+	private void parseEventType(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
+		final String eventTypeAttribute = element.getAttribute("event-type");
+		if (StringUtils.hasText(eventTypeAttribute)) {
+			builder.addPropertyValue("eventType", ClassUtils.resolveClassName(eventTypeAttribute, DisruptorWorkflowParser.class.getClassLoader()));
+		} else {
+			builder.addPropertyValue("eventType", MessagingEvent.class);
+		}
+	}
+
 	private void parseExecutorName(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
 		final String executorAttribute = element.getAttribute("executor");
-		builder.addPropertyValue("executorName", executorAttribute);
+		if (StringUtils.hasText(executorAttribute)) {
+			builder.addPropertyValue("executorName", executorAttribute);
+			builder.addDependsOn(executorAttribute);
+		}
 	}
 
 	private void parseHandlerGroups(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {

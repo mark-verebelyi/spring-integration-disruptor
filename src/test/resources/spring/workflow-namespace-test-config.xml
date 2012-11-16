@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-disruptor="http://www.springframework.org/schema/integration/disruptor"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/disruptor http://www.springframework.org/schema/integration/disruptor/spring-integration-disruptor-0.1.xsd">
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/integration/disruptor http://www.springframework.org/schema/integration/disruptor/spring-integration-disruptor-0.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<task:executor id="executor" pool-size="0-30"/>
 
 	<int:channel id="channel1"/>
 	<int:channel id="channel2"/>
 
-	<int-disruptor:workflow event-factory="" event-type="" id="workflow">
+	<int-disruptor:workflow event-factory="" event-type="" id="workflow" executor="executor">
 		<int-disruptor:publisher-channels>
 			<int-disruptor:publisher-channel ref="channel1"/>
 			<int-disruptor:publisher-channel ref="channel2"/>
