@@ -18,8 +18,10 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.disruptor.DisruptorWorkflow;
-import org.springframework.integration.disruptor.MessagingEvent;
 import org.springframework.integration.disruptor.config.HandlerGroup;
+import org.springframework.integration.disruptor.config.workflow.eventfactory.FallbackEventFactoryAdapter;
+import org.springframework.integration.disruptor.config.workflow.eventfactory.MethodInvokingEventFactoryAdapter;
+import org.springframework.integration.disruptor.config.workflow.eventfactory.NativeEventFactoryAdapter;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.util.StringUtils;
 
@@ -31,7 +33,7 @@ import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.Sequence;
 import com.lmax.disruptor.SequenceBarrier;
 
-public final class DisruptorWorkflowFactoryBean implements FactoryBean<DisruptorWorkflow>, BeanFactoryAware, SmartLifecycle, InitializingBean {
+public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<DisruptorWorkflow<T>>, BeanFactoryAware, SmartLifecycle, InitializingBean {
 
 	private final Log log = LogFactory.getLog(this.getClass());
 
@@ -53,9 +55,9 @@ public final class DisruptorWorkflowFactoryBean implements FactoryBean<Disruptor
 		this.executorName = executorName;
 	}
 
-	private Class<?> eventType;
+	private Class<T> eventType;
 
-	public void setEventType(final Class<?> eventType) {
+	public void setEventType(final Class<T> eventType) {
 		this.log.info("DisruptorWorkflow is accepting the following event type '" + eventType.getName() + "'.");
 		this.eventType = eventType;
 	}
@@ -66,14 +68,14 @@ public final class DisruptorWorkflowFactoryBean implements FactoryBean<Disruptor
 		this.eventFactoryName = eventFactoryName;
 	}
 
-	private DisruptorWorkflow disruptorWorkflow;
+	private DisruptorWorkflow<T> disruptorWorkflow;
 
 	private final Map<String, HandlerGroup> handlerGroups;
 	private final DependencyGraph<List<EventProcessor>> dependencyGraph;
 	private final DependencyGraph<List<EventProcessor>> inverseDependencyGraph;
 	private final List<EventDrivenConsumer> consumers;
 
-	public DisruptorWorkflow getObject() throws Exception {
+	public DisruptorWorkflow<T> getObject() throws Exception {
 		return this.disruptorWorkflow;
 	}
 
@@ -88,18 +90,43 @@ public final class DisruptorWorkflowFactoryBean implements FactoryBean<Disruptor
 
 		final Executor executor = this.createExecutorService();
 
-		final RingBuffer<MessagingEvent> ringBuffer = this.createRingBuffer();
+		final EventFactory<T> eventFactory = this.createEventFactory();
+
+		final RingBuffer<T> ringBuffer = this.createRingBuffer();
 		this.setHandlers(ringBuffer);
 		this.setGatingSequences(ringBuffer);
 
 		final List<EventProcessor> eventProcessors = this.collectEventProcessors();
 
 		if (this.disruptorWorkflow == null) {
-			this.disruptorWorkflow = new DisruptorWorkflow(ringBuffer, executor, eventProcessors);
+			this.disruptorWorkflow = new DisruptorWorkflow<T>(ringBuffer, executor, eventProcessors);
 		}
 
 		this.registerEventDrivenConstumers();
 
+	}
+
+	private EventFactory<T> createEventFactory() {
+		if (StringUtils.hasText(this.eventFactoryName)) {
+			final Object object = this.beanFactory.getBean(this.eventFactoryName);
+			if (this.isNativeEventFactory(object)) {
+				return this.newNativeEventFactory(object);
+			} else {
+				return new MethodInvokingEventFactoryAdapter<T>(object, this.eventType);
+			}
+		}
+		return new FallbackEventFactoryAdapter<T>(this.eventType);
+	}
+
+	private EventFactory<T> newNativeEventFactory(final Object object) {
+		@SuppressWarnings("unchecked")
+		final EventFactory<T> eventFactory = (EventFactory<T>) object;
+		return new NativeEventFactoryAdapter<T>(eventFactory);
+	}
+
+	private boolean isNativeEventFactory(final Object eventFactory) {
+		final EventFactoryValidator validator = new EventFactoryValidator();
+		return validator.canProduce(eventFactory, this.eventType);
 	}
 
 	private List<EventProcessor> collectEventProcessors() {
@@ -124,7 +151,7 @@ public final class DisruptorWorkflowFactoryBean implements FactoryBean<Disruptor
 		}
 	}
 
-	private void setHandlers(final RingBuffer<MessagingEvent> ringBuffer) {
+	private void setHandlers(final RingBuffer<T> ringBuffer) {
 		final List<String> handlerGroupNames = buildTopologyOrder(this.inverseDependencyGraph);
 		for (final String handlerGroupName : handlerGroupNames) {
 			final HandlerGroup handlerGroup = this.handlerGroups.get(handlerGroupName);
@@ -138,7 +165,7 @@ public final class DisruptorWorkflowFactoryBean implements FactoryBean<Disruptor
 		}
 	}
 
-	private void setGatingSequences(final RingBuffer<MessagingEvent> ringBuffer) {
+	private void setGatingSequences(final RingBuffer<T> ringBuffer) {
 		final List<String> gatingDependencies = this.inverseDependencyGraph.getOrphanDependencies();
 		final Sequence[] gatingSequences = toArray(this.findGatingSequences(gatingDependencies));
 		ringBuffer.setGatingSequences(gatingSequences);
@@ -162,7 +189,7 @@ public final class DisruptorWorkflowFactoryBean implements FactoryBean<Disruptor
 		return topologyBuilder.buildTopology(inverseDependencyGraph);
 	}
 
-	private SequenceBarrier createSequenceBarrier(final RingBuffer<MessagingEvent> ringBuffer, final DependencyGraph<List<EventProcessor>> dependencyGraph,
+	private SequenceBarrier createSequenceBarrier(final RingBuffer<T> ringBuffer, final DependencyGraph<List<EventProcessor>> dependencyGraph,
 			final HandlerGroup handlerGroup) {
 		if (handlerGroup.hasSingleDependency("ring-buffer")) {
 			return ringBuffer.newBarrier();
@@ -172,12 +199,11 @@ public final class DisruptorWorkflowFactoryBean implements FactoryBean<Disruptor
 		}
 	}
 
-	private List<EventProcessor> createEventProcessors(final RingBuffer<MessagingEvent> ringBuffer, final HandlerGroup handlerGroup,
-			final SequenceBarrier barrier) {
-		final List<EventHandler<MessagingEvent>> eventHandlers = this.getEventHandlers(handlerGroup);
+	private List<EventProcessor> createEventProcessors(final RingBuffer<T> ringBuffer, final HandlerGroup handlerGroup, final SequenceBarrier barrier) {
+		final List<EventHandler<T>> eventHandlers = this.getEventHandlers(handlerGroup);
 		final List<EventProcessor> eventProcessors = new ArrayList<EventProcessor>();
-		for (final EventHandler<MessagingEvent> eventHandler : eventHandlers) {
-			final EventProcessor eventProcessor = new BatchEventProcessor<MessagingEvent>(ringBuffer, barrier, eventHandler);
+		for (final EventHandler<T> eventHandler : eventHandlers) {
+			final EventProcessor eventProcessor = new BatchEventProcessor<T>(ringBuffer, barrier, eventHandler);
 			eventProcessors.add(eventProcessor);
 		}
 		return eventProcessors;
@@ -217,12 +243,12 @@ public final class DisruptorWorkflowFactoryBean implements FactoryBean<Disruptor
 		return allDependeeEventProcessors;
 	}
 
-	public List<EventHandler<MessagingEvent>> getEventHandlers(final HandlerGroup handlerGroup) {
-		final List<EventHandler<MessagingEvent>> eventHandlers = new ArrayList<EventHandler<MessagingEvent>>();
+	public List<EventHandler<T>> getEventHandlers(final HandlerGroup handlerGroup) {
+		final List<EventHandler<T>> eventHandlers = new ArrayList<EventHandler<T>>();
 		for (final String handlerBeanName : handlerGroup.getHandlerBeanNames()) {
-			eventHandlers.add(new EventHandler<MessagingEvent>() {
+			eventHandlers.add(new EventHandler<T>() {
 
-				public void onEvent(final MessagingEvent event, final long sequence, final boolean endOfBatch) throws Exception {
+				public void onEvent(final T event, final long sequence, final boolean endOfBatch) throws Exception {
 					System.out.println(handlerGroup.getName() + " " + handlerBeanName + "> " + event);
 				}
 
@@ -231,11 +257,11 @@ public final class DisruptorWorkflowFactoryBean implements FactoryBean<Disruptor
 		return eventHandlers;
 	}
 
-	private RingBuffer<MessagingEvent> createRingBuffer() {
-		return new RingBuffer<MessagingEvent>(new EventFactory<MessagingEvent>() {
+	private RingBuffer<T> createRingBuffer() {
+		return new RingBuffer<T>(new EventFactory<T>() {
 
-			public MessagingEvent newInstance() {
-				return new MessagingEvent();
+			public T newInstance() {
+				return null;
 			}
 
 		}, 1024);
