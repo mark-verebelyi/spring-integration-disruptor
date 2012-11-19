@@ -7,6 +7,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.disruptor.config.workflow.translator.MessageEventTranslator;
 
 import com.lmax.disruptor.EventProcessor;
 import com.lmax.disruptor.EventPublisher;
@@ -21,10 +22,10 @@ public class DisruptorWorkflow<T> implements MessageHandler, SmartLifecycle {
 	private final RingBuffer<T> ringBuffer;
 	private final Executor executor;
 	private final List<EventProcessor> eventProcessors;
-	private final MessageToEventTranslator<T> translator;
+	private final MessageEventTranslator<T> translator;
 
 	public DisruptorWorkflow(final RingBuffer<T> ringBuffer, final Executor executor, final List<EventProcessor> eventProcessors,
-			final MessageToEventTranslator<T> translator) {
+			final MessageEventTranslator<T> translator) {
 		this.ringBuffer = ringBuffer;
 		this.executor = executor;
 		this.eventProcessors = eventProcessors;

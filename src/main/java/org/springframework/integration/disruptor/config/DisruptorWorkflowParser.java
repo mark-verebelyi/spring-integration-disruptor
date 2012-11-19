@@ -28,9 +28,15 @@ public final class DisruptorWorkflowParser extends AbstractBeanDefinitionParser 
 		this.parseEventType(element, parserContext, builder);
 		this.parseEventFactoryName(element, parserContext, builder);
 		this.parseExecutorName(element, parserContext, builder);
+		this.parseTranslator(element, parserContext, builder);
 		this.parsePublisherChannelNames(element, parserContext, builder);
 		this.parseHandlerGroups(element, parserContext, builder);
 		return builder.getBeanDefinition();
+	}
+
+	private void parseTranslator(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
+		final String translatorAttribute = element.getAttribute("translator");
+		builder.addPropertyValue("translatorName", translatorAttribute);
 	}
 
 	private void parseId(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {

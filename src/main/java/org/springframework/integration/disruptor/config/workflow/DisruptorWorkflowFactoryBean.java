@@ -16,12 +16,18 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.disruptor.DisruptorWorkflow;
+import org.springframework.integration.disruptor.MessagingEvent;
 import org.springframework.integration.disruptor.config.HandlerGroup;
 import org.springframework.integration.disruptor.config.workflow.eventfactory.FallbackEventFactoryAdapter;
 import org.springframework.integration.disruptor.config.workflow.eventfactory.MethodInvokingEventFactoryAdapter;
+import org.springframework.integration.disruptor.config.workflow.translator.MessageEventTranslator;
+import org.springframework.integration.disruptor.config.workflow.translator.MessagingEventTranslator;
+import org.springframework.integration.disruptor.config.workflow.translator.MethodInvokingMessageEventTranslator;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.lmax.disruptor.BatchEventProcessor;
@@ -73,6 +79,12 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 		this.eventFactoryName = eventFactoryName;
 	}
 
+	private String translatorName;
+
+	public void setTranslatorName(final String translatorName) {
+		this.translatorName = translatorName;
+	}
+
 	private DisruptorWorkflow<T> disruptorWorkflow;
 
 	private final Map<String, HandlerGroup> handlerGroups;
@@ -102,13 +114,48 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 		final List<EventProcessor> eventProcessors = this.collectEventProcessors();
 
 		final Executor executor = this.createExecutorService(eventProcessors.size());
+		final MessageEventTranslator<T> translator = this.createTranslator();
 
 		if (this.disruptorWorkflow == null) {
-			this.disruptorWorkflow = new DisruptorWorkflow<T>(ringBuffer, executor, eventProcessors, null);
+			this.disruptorWorkflow = new DisruptorWorkflow<T>(ringBuffer, executor, eventProcessors, translator);
 		}
 
 		this.registerEventDrivenConstumers();
 
+	}
+
+	private MessageEventTranslator<T> createTranslator() {
+		if (StringUtils.hasText(this.translatorName)) {
+			final Object translator = this.beanFactory.getBean(this.translatorName);
+			if (this.isNativeTranslator(translator)) {
+				this.log.info("'" + this.translatorName + "' is a native MessageEventTranslator.");
+				@SuppressWarnings("unchecked")
+				final MessageEventTranslator<T> messageToEventTranslator = (MessageEventTranslator<T>) translator;
+				return messageToEventTranslator;
+			} else {
+				this.log.info("'" + this.translatorName + "' is not a native MessageEventTranslator, configuring MethodInvokingMessageEventTranslator.");
+				return new MethodInvokingMessageEventTranslator<T>(translator, this.eventType);
+			}
+		} else {
+			if (this.isMessagingEventType()) {
+				this.log.info("'MessagingEvent' event type found, configuring default MessageEventTranslator");
+				@SuppressWarnings("unchecked")
+				final MessageEventTranslator<T> messagingEventTranslator = (MessageEventTranslator<T>) new MessagingEventTranslator();
+				return messagingEventTranslator;
+			} else {
+				throw new BeanCreationException("Can't create 'workflow' without MessageEventTranslator (the one exception "
+						+ "to this rule is when event type is MessagingEvent or empty)");
+			}
+		}
+	}
+
+	private boolean isNativeTranslator(final Object translator) {
+		return (translator instanceof MessageEventTranslator)
+				&& (ReflectionUtils.findMethod(translator.getClass(), "translateTo", Message.class, this.eventType) != null);
+	}
+
+	private boolean isMessagingEventType() {
+		return MessagingEvent.class.isAssignableFrom(this.eventType);
 	}
 
 	private EventFactory<T> createEventFactory() {

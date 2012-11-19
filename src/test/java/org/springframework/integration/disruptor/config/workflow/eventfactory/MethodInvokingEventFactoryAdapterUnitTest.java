@@ -36,7 +36,8 @@ public class MethodInvokingEventFactoryAdapterUnitTest {
 			new MethodInvokingEventFactoryAdapter<String>(this.multipleMethodsWithExpectedType, String.class);
 			fail("Should have failed, when multiple methods apply.");
 		} catch (final IllegalArgumentException e) {
-			assertEquals("Can't decide between multiple suitable event factory methods: [newValue1, newValue2]", e.getMessage());
+			assertEquals("Can't decide between multiple suitable EventFactory methods: [newValue1, newValue2]; consider using @EventFactory to designate one.",
+					e.getMessage());
 		}
 	}
 
@@ -46,7 +47,7 @@ public class MethodInvokingEventFactoryAdapterUnitTest {
 			new MethodInvokingEventFactoryAdapter<String>(this.noCompatibleReturnTypes, String.class);
 			fail("Should have failed, when there are no compatible return types");
 		} catch (final IllegalArgumentException e) {
-			assertEquals("No suitable event factory method was found on NoCompatibleReturnTypes", e.getMessage());
+			assertEquals("No suitable EventFactory method was found on NoCompatibleReturnTypes", e.getMessage());
 		}
 	}
 
