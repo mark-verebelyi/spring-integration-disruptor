@@ -24,7 +24,7 @@ public class MethodInvokingMessageEventTranslator<T> extends AbstractMethodInvok
 	@Override
 	protected MethodSpecification getNarrowingSpecification() {
 		final MethodSpecification specification = new MethodSpecification();
-		specification.setAnnotationType(org.springframework.integration.disruptor.config.annotation.MessageEventTranslator.class);
+		specification.setAnnotationType(this.getAnnotationType());
 		return specification;
 	}
 
@@ -35,11 +35,11 @@ public class MethodInvokingMessageEventTranslator<T> extends AbstractMethodInvok
 
 	@Override
 	protected Class<? extends Annotation> getAnnotationType() {
-		return org.springframework.integration.disruptor.config.annotation.MessageEventTranslator.class;
+		return org.springframework.integration.disruptor.config.annotation.EventTranslator.class;
 	}
 
 	public void translateTo(final Message<?> message, final T event) {
-		this.log.info("Using '" + this.method + "' on '" + this.target.getClass().getSimpleName() + "' for translate Messages to events of type '"
+		this.log.info("Using '" + this.method + "' on '" + this.target.getClass().getSimpleName() + "' to translate Messages to events of type '"
 				+ this.expectedType.getSimpleName() + "'");
 		ReflectionUtils.invokeMethod(this.method, this.target, message, event);
 	}

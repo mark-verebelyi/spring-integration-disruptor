@@ -49,5 +49,17 @@
 			</int-disruptor:handler-group>			
 		</int-disruptor:handler-groups>
 	</int-disruptor:workflow>
+	
+	<bean id="handler1" class="org.springframework.integration.disruptor.MessagingEventHandler"/>
+	<bean id="handler2" class="org.springframework.integration.disruptor.MessagingEventHandler"/>
+	<bean id="handler3" class="org.springframework.integration.disruptor.MessagingEventHandler"/>
+	<bean id="handler4" class="org.springframework.integration.disruptor.MessagingEventHandler"/>
+	<bean id="handler5" class="org.springframework.integration.disruptor.MessagingEventHandler"/>
+	<bean id="handler6" class="org.springframework.integration.disruptor.MessagingEventHandler"/>
+	<bean id="handler7" class="org.springframework.integration.disruptor.MessagingEventHandler"/>
+	<bean id="handler8" class="org.springframework.integration.disruptor.MessagingEventHandler"/>
+	<bean id="handler9" class="org.springframework.integration.disruptor.MessagingEventHandler"/>
+	<bean id="handler10" class="org.springframework.integration.disruptor.MessagingEventHandler"/>
+	<bean id="handler11" class="org.springframework.integration.disruptor.MessagingEventHandler"/>
 
 </beans>

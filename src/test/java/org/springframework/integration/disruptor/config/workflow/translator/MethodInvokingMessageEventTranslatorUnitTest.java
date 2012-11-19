@@ -6,7 +6,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.disruptor.CustomEvent;
-import org.springframework.integration.disruptor.config.annotation.MessageEventTranslator;
+import org.springframework.integration.disruptor.config.annotation.EventTranslator;
 import org.springframework.integration.support.MessageBuilder;
 
 public class MethodInvokingMessageEventTranslatorUnitTest {
@@ -59,7 +59,7 @@ public class MethodInvokingMessageEventTranslatorUnitTest {
 			fail("Should haved failed when multiple suitable methods found");
 		} catch (final IllegalArgumentException e) {
 			assertEquals(
-					"Can't decide between multiple suitable MessageEventTranslator methods: [convert, translate]; consider using @MessageEventTranslator to designate one.",
+					"Can't decide between multiple suitable MessageEventTranslator methods: [convert, translate]; consider using @EventTranslator to designate one.",
 					e.getMessage());
 		}
 
@@ -99,7 +99,7 @@ public class MethodInvokingMessageEventTranslatorUnitTest {
 
 	public static class AnnotatedTranslator extends SimpleTranslator {
 
-		@MessageEventTranslator
+		@EventTranslator
 		public void transform(final Message<?> message, final CustomEvent event) {
 			final String payload = (String) message.getPayload();
 			event.setObject(payload + " baz");
