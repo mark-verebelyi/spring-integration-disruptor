@@ -21,7 +21,6 @@ import org.springframework.integration.disruptor.DisruptorWorkflow;
 import org.springframework.integration.disruptor.config.HandlerGroup;
 import org.springframework.integration.disruptor.config.workflow.eventfactory.FallbackEventFactoryAdapter;
 import org.springframework.integration.disruptor.config.workflow.eventfactory.MethodInvokingEventFactoryAdapter;
-import org.springframework.integration.disruptor.config.workflow.eventfactory.NativeEventFactoryAdapter;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.util.StringUtils;
 
@@ -36,6 +35,12 @@ import com.lmax.disruptor.SequenceBarrier;
 public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<DisruptorWorkflow<T>>, BeanFactoryAware, SmartLifecycle, InitializingBean {
 
 	private final Log log = LogFactory.getLog(this.getClass());
+
+	private String id;
+
+	public void setId(final String id) {
+		this.id = id;
+	}
 
 	private BeanFactory beanFactory;
 
@@ -88,18 +93,18 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 
 	public void afterPropertiesSet() throws Exception {
 
-		final Executor executor = this.createExecutorService();
-
 		final EventFactory<T> eventFactory = this.createEventFactory();
 
-		final RingBuffer<T> ringBuffer = this.createRingBuffer();
+		final RingBuffer<T> ringBuffer = this.createRingBuffer(eventFactory);
 		this.setHandlers(ringBuffer);
 		this.setGatingSequences(ringBuffer);
 
 		final List<EventProcessor> eventProcessors = this.collectEventProcessors();
 
+		final Executor executor = this.createExecutorService(eventProcessors.size());
+
 		if (this.disruptorWorkflow == null) {
-			this.disruptorWorkflow = new DisruptorWorkflow<T>(ringBuffer, executor, eventProcessors);
+			this.disruptorWorkflow = new DisruptorWorkflow<T>(ringBuffer, executor, eventProcessors, null);
 		}
 
 		this.registerEventDrivenConstumers();
@@ -110,18 +115,17 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 		if (StringUtils.hasText(this.eventFactoryName)) {
 			final Object object = this.beanFactory.getBean(this.eventFactoryName);
 			if (this.isNativeEventFactory(object)) {
-				return this.newNativeEventFactory(object);
+				this.log.info("Configuring '" + this.id + "' with native EventFactory named '" + this.eventFactoryName + "'.");
+				@SuppressWarnings("unchecked")
+				final EventFactory<T> eventFactory = (EventFactory<T>) object;
+				return eventFactory;
 			} else {
+				this.log.info("Configuring '" + this.id + "' with MethodInvokingEventFactory named '" + this.eventFactoryName + "'.");
 				return new MethodInvokingEventFactoryAdapter<T>(object, this.eventType);
 			}
 		}
+		this.log.info("Configuring '" + this.id + "' with FallbackEventFactory.");
 		return new FallbackEventFactoryAdapter<T>(this.eventType);
-	}
-
-	private EventFactory<T> newNativeEventFactory(final Object object) {
-		@SuppressWarnings("unchecked")
-		final EventFactory<T> eventFactory = (EventFactory<T>) object;
-		return new NativeEventFactoryAdapter<T>(eventFactory);
 	}
 
 	private boolean isNativeEventFactory(final Object eventFactory) {
@@ -141,7 +145,7 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 		return eventProcessors;
 	}
 
-	private Executor createExecutorService() {
+	private Executor createExecutorService(final int numberOfEventProcessors) {
 		if (StringUtils.hasText(this.executorName)) {
 			this.log.info("Configuring DisruptorWorkflow with Executor named '" + this.executorName + "'.");
 			return this.beanFactory.getBean(this.executorName, Executor.class);
@@ -257,14 +261,8 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 		return eventHandlers;
 	}
 
-	private RingBuffer<T> createRingBuffer() {
-		return new RingBuffer<T>(new EventFactory<T>() {
-
-			public T newInstance() {
-				return null;
-			}
-
-		}, 1024);
+	private RingBuffer<T> createRingBuffer(final EventFactory<T> eventFactory) {
+		return new RingBuffer<T>(eventFactory, 1024);
 	}
 
 	private void registerEventDrivenConstumers() {

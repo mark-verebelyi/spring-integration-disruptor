@@ -21,11 +21,14 @@ public class DisruptorWorkflow<T> implements MessageHandler, SmartLifecycle {
 	private final RingBuffer<T> ringBuffer;
 	private final Executor executor;
 	private final List<EventProcessor> eventProcessors;
+	private final MessageToEventTranslator<T> translator;
 
-	public DisruptorWorkflow(final RingBuffer<T> ringBuffer, final Executor executor, final List<EventProcessor> eventProcessors) {
+	public DisruptorWorkflow(final RingBuffer<T> ringBuffer, final Executor executor, final List<EventProcessor> eventProcessors,
+			final MessageToEventTranslator<T> translator) {
 		this.ringBuffer = ringBuffer;
 		this.executor = executor;
 		this.eventProcessors = eventProcessors;
+		this.translator = translator;
 	}
 
 	public void handleMessage(final Message<?> message) throws MessagingException {
@@ -33,8 +36,7 @@ public class DisruptorWorkflow<T> implements MessageHandler, SmartLifecycle {
 		new EventPublisher<T>(this.ringBuffer).publishEvent(new EventTranslator<T>() {
 
 			public void translateTo(final T event, final long sequence) {
-				final MessagingEvent me = (MessagingEvent) event;
-				me.setPayload(message);
+				DisruptorWorkflow.this.translator.translateTo(message, event);
 			}
 
 		});

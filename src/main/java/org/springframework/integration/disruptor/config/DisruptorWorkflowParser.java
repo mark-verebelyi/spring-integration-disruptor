@@ -24,12 +24,22 @@ public final class DisruptorWorkflowParser extends AbstractBeanDefinitionParser 
 	@Override
 	protected AbstractBeanDefinition parseInternal(final Element element, final ParserContext parserContext) {
 		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DisruptorWorkflowFactoryBean.class);
+		this.parseId(element, parserContext, builder);
 		this.parseEventType(element, parserContext, builder);
 		this.parseEventFactoryName(element, parserContext, builder);
 		this.parseExecutorName(element, parserContext, builder);
 		this.parsePublisherChannelNames(element, parserContext, builder);
 		this.parseHandlerGroups(element, parserContext, builder);
 		return builder.getBeanDefinition();
+	}
+
+	private void parseId(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
+		final String idAttribute = element.getAttribute("id");
+		if (StringUtils.hasText(idAttribute)) {
+			builder.addPropertyValue("id", idAttribute);
+		} else {
+			parserContext.getReaderContext().error("'id' attribute is mandatory for 'workflow'", element);
+		}
 	}
 
 	private void parseEventFactoryName(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {

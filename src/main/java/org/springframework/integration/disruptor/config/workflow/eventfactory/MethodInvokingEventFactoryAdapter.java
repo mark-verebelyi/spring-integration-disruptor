@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.disruptor.config.annotation.EventFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -12,6 +14,8 @@ import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
 
 public class MethodInvokingEventFactoryAdapter<T> implements com.lmax.disruptor.EventFactory<T> {
+
+	private final Log log = LogFactory.getLog(this.getClass());
 
 	private final Object target;
 	private final Method method;
@@ -22,6 +26,8 @@ public class MethodInvokingEventFactoryAdapter<T> implements com.lmax.disruptor.
 		Assert.isTrue(expectedType != null, "Expected type can not be null");
 		this.target = target;
 		this.method = this.findMethod(target, expectedType);
+		this.log.info("Using '" + this.method + "' on '" + target.getClass().getSimpleName() + "' for creating events of type '" + expectedType.getSimpleName()
+				+ "'");
 		this.expectedType = expectedType;
 	}
 
