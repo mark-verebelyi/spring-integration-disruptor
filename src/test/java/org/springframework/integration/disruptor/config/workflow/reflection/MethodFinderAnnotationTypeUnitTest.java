@@ -1,12 +1,14 @@
 package org.springframework.integration.disruptor.config.workflow.reflection;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
@@ -38,9 +40,12 @@ public class MethodFinderAnnotationTypeUnitTest {
 		final MethodSpecification specification = new MethodSpecification();
 		specification.setAnnotationType(SomeAnnotation.class);
 
-		final List<Method> methods = this.methodFinder.findMethods(this.singleAnnotatedMethod, specification);
-		assertEquals(1, methods.size());
+		final List<Method> methods = this.methodFinder.findMethods(this.multipleAnnotatedMethods, specification);
+		assertEquals(2, methods.size());
 
+		final Method doWhateverMethod = ReflectionUtils.findMethod(MultipleAnnotatedMethods.class, "doWhatEver");
+		final Method newObjectMethod = ReflectionUtils.findMethod(MultipleAnnotatedMethods.class, "newObject");
+		assertTrue(methods.containsAll(Arrays.asList(doWhateverMethod, newObjectMethod)));
 	}
 
 	public static class SingleAnnotatedMethod {
