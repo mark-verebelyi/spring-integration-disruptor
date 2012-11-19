@@ -12,7 +12,6 @@ import org.springframework.integration.disruptor.config.workflow.DependencyGraph
 import org.springframework.integration.disruptor.config.workflow.DependencyTopologyBuilderUnitTest;
 import org.springframework.integration.disruptor.config.workflow.EventFactoryValidatorUnitTest;
 import org.springframework.integration.disruptor.config.workflow.eventfactory.MethodInvokingEventFactoryAdapterUnitTest;
-import org.springframework.integration.disruptor.config.workflow.reflection.MethodFinderAnnotationTypeUnitTest;
 import org.springframework.integration.disruptor.config.workflow.reflection.MethodFinderArgumentUnitTest;
 import org.springframework.integration.disruptor.config.workflow.reflection.MethodFinderReturnTypeUnitTest;
 
@@ -20,7 +19,7 @@ import org.springframework.integration.disruptor.config.workflow.reflection.Meth
 @SuiteClasses({ DisruptorWorkflowIntegrationTest.class, SimpleChannelUseCaseIntegrationTest.class, DisruptorNamespaceIntegrationTest.class,
 		RingBufferIntegrationTest.class, CycleDetectorUnitTest.class, DependencyGraphUnitTest.class, DependencyTopologyBuilderUnitTest.class,
 		EventFactoryValidatorUnitTest.class, MethodInvokingEventFactoryAdapterUnitTest.class, MethodFinderArgumentUnitTest.class,
-		MethodFinderReturnTypeUnitTest.class, MethodFinderAnnotationTypeUnitTest.class })
+		MethodFinderReturnTypeUnitTest.class, })
 public class AllTests {
 
 }

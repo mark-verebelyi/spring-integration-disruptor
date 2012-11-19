@@ -7,4 +7,6 @@ public interface MethodFinder {
 
 	List<Method> findMethods(Object target, MethodSpecification specification);
 
+	List<Method> findMethods(List<Method> methods, MethodSpecification specification);
+
 }
