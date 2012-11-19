@@ -39,8 +39,6 @@ public class MethodInvokingEventFactoryAdapter<T> extends AbstractMethodInvoker<
 	}
 
 	public T newInstance() {
-		this.log.info("Using '" + this.method + "' on '" + this.target.getClass().getSimpleName() + "' to create events of type '"
-				+ this.expectedType.getSimpleName() + "'");
 		return this.cast(ReflectionUtils.invokeMethod(this.method, this.target));
 	}
 

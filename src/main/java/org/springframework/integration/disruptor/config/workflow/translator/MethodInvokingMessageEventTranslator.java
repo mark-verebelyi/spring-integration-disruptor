@@ -39,8 +39,6 @@ public class MethodInvokingMessageEventTranslator<T> extends AbstractMethodInvok
 	}
 
 	public void translateTo(final Message<?> message, final T event) {
-		this.log.info("Using '" + this.method + "' on '" + this.target.getClass().getSimpleName() + "' to translate Messages to events of type '"
-				+ this.expectedType.getSimpleName() + "'");
 		ReflectionUtils.invokeMethod(this.method, this.target, message, event);
 	}
 

@@ -24,9 +24,11 @@ public abstract class AbstractMethodInvoker<T> {
 		this.target = target;
 		this.expectedType = expectedType;
 		this.method = this.findMethod();
+		this.log.info("Using '" + this.method + "' on '" + this.target.getClass().getSimpleName() + "' for event type '" + this.expectedType.getSimpleName()
+				+ "'");
 	}
 
-	protected String toPlain(final List<Method> suitableMethods) {
+	private String toPlain(final List<Method> suitableMethods) {
 		final List<String> methodNames = new ArrayList<String>();
 		for (final Method method : suitableMethods) {
 			methodNames.add(method.getName());
@@ -35,7 +37,7 @@ public abstract class AbstractMethodInvoker<T> {
 		return methodNames.toString();
 	}
 
-	protected Method findMethod() {
+	private Method findMethod() {
 		final List<Method> suitableMethods = this.findSuitableMethods(this.target, this.expectedType);
 		if (suitableMethods.isEmpty()) {
 			throw new IllegalArgumentException("No suitable " + this.getDescription() + " method was found on " + this.target.getClass().getSimpleName());

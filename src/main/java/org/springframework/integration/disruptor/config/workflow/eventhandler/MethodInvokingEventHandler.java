@@ -15,8 +15,6 @@ public final class MethodInvokingEventHandler<T> extends AbstractMethodInvoker<T
 	}
 
 	public void onEvent(final T event, final long sequence, final boolean endOfBatch) throws Exception {
-		this.log.info("Using '" + this.method + "' on '" + this.target.getClass().getSimpleName() + "' to handle events of type '"
-				+ this.expectedType.getSimpleName() + "'");
 		ReflectionUtils.invokeMethod(this.method, this.target, event);
 	}
 
