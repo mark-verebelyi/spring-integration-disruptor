@@ -17,15 +17,13 @@ public class MethodFinderReturnTypeUnitTest {
 	private final CovariantReturnType covariantReturnType = new CovariantReturnType();
 	private final VoidReturnType voidReturnType = new VoidReturnType();
 
-	private final MethodFinder methodFinder = new MethodFinderImpl();
-
 	@Test
 	public void Single_method_with_exact_return_type() {
 
 		final MethodSpecification specification = new MethodSpecification();
 		specification.setReturnType(Integer.class);
 
-		final List<Method> methods = this.methodFinder.findMethods(this.singleMethodWithExactReturnType, specification);
+		final List<Method> methods = MethodFinderUtils.findMethods(this.singleMethodWithExactReturnType, specification);
 		assertEquals(1, methods.size());
 
 		assertEquals(ReflectionUtils.findMethod(SingleMethodWithExactReturnType.class, "newInt"), methods.get(0));
@@ -38,7 +36,7 @@ public class MethodFinderReturnTypeUnitTest {
 		final MethodSpecification specification = new MethodSpecification();
 		specification.setReturnType(Integer.class);
 
-		final List<Method> methods = this.methodFinder.findMethods(this.multipleMethodsWithExactReturnTypesAndInheritance, specification);
+		final List<Method> methods = MethodFinderUtils.findMethods(this.multipleMethodsWithExactReturnTypesAndInheritance, specification);
 		assertEquals(2, methods.size());
 
 		final Method newIntMethod = ReflectionUtils.findMethod(MultipleMethodsWithExactReturnTypesAndInheritance.class, "newInt");
@@ -53,7 +51,7 @@ public class MethodFinderReturnTypeUnitTest {
 		final MethodSpecification specification = new MethodSpecification();
 		specification.setReturnType(Number.class);
 
-		final List<Method> methods = this.methodFinder.findMethods(this.covariantReturnType, specification);
+		final List<Method> methods = MethodFinderUtils.findMethods(this.covariantReturnType, specification);
 		assertEquals(1, methods.size());
 
 		assertEquals(ReflectionUtils.findMethod(CovariantReturnType.class, "newInt"), methods.get(0));
@@ -66,7 +64,7 @@ public class MethodFinderReturnTypeUnitTest {
 		final MethodSpecification specification = new MethodSpecification();
 		specification.setReturnType(Runnable.class);
 
-		final List<Method> methods = this.methodFinder.findMethods(this.singleMethodWithExactReturnType, specification);
+		final List<Method> methods = MethodFinderUtils.findMethods(this.singleMethodWithExactReturnType, specification);
 		assertTrue(methods.isEmpty());
 
 	}
@@ -77,7 +75,7 @@ public class MethodFinderReturnTypeUnitTest {
 		final MethodSpecification specification = new MethodSpecification();
 		specification.setReturnType(void.class);
 
-		final List<Method> methods = this.methodFinder.findMethods(this.voidReturnType, specification);
+		final List<Method> methods = MethodFinderUtils.findMethods(this.voidReturnType, specification);
 		assertEquals(1, methods.size());
 
 		assertEquals(ReflectionUtils.findMethod(VoidReturnType.class, "noop"), methods.get(0));

@@ -16,8 +16,6 @@ import org.springframework.util.ReflectionUtils;
 
 public class MethodFinderUnitTest {
 
-	private final MethodFinder methodFinder = new MethodFinderImpl();
-
 	@Test
 	public void Composite_specification() {
 
@@ -26,7 +24,7 @@ public class MethodFinderUnitTest {
 		specification.setAnnotationType(AnnotationA.class);
 		specification.setArgumentTypes(String.class, int.class, Long.class);
 
-		final List<Method> methods = this.methodFinder.findMethods(new C(), specification);
+		final List<Method> methods = MethodFinderUtils.findMethods(new C(), specification);
 		assertEquals(2, methods.size());
 
 		final Method createValueMethod = ReflectionUtils.findMethod(C.class, "createValue", String.class, Object.class, Number.class);

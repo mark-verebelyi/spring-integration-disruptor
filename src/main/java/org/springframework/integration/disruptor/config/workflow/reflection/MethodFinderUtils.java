@@ -10,19 +10,23 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodFilter;
 
-public class MethodFinderImpl implements MethodFinder {
+public final class MethodFinderUtils {
 
-	public List<Method> findMethods(final Object target, final MethodSpecification specification) {
+	private MethodFinderUtils() {
+		throw new IllegalStateException("Utility class, do not instantiate.");
+	}
+
+	public static List<Method> findMethods(final Object target, final MethodSpecification specification) {
 		final List<Method> methods = Arrays.asList(ReflectionUtils.getAllDeclaredMethods(target.getClass()));
-		return this.findMethods(methods, specification);
+		return findMethods(methods, specification);
 	}
 
-	public List<Method> findMethods(final List<Method> methods, final MethodSpecification specification) {
-		final MethodFilter filter = this.createCompositeMethodFilter(specification);
-		return this.findMatchingMethods(methods, filter);
+	public static List<Method> findMethods(final List<Method> methods, final MethodSpecification specification) {
+		final MethodFilter filter = createCompositeMethodFilter(specification);
+		return findMatchingMethods(methods, filter);
 	}
 
-	private List<Method> findMatchingMethods(final List<Method> methods, final MethodFilter filter) {
+	private static List<Method> findMatchingMethods(final List<Method> methods, final MethodFilter filter) {
 		final List<Method> matchingMethods = new ArrayList<Method>();
 		for (final Method method : methods) {
 			if (filter.matches(method)) {
@@ -32,34 +36,34 @@ public class MethodFinderImpl implements MethodFinder {
 		return matchingMethods;
 	}
 
-	private CompositeFilter createCompositeMethodFilter(final MethodSpecification specification) {
+	private static CompositeFilter createCompositeMethodFilter(final MethodSpecification specification) {
 		final List<MethodFilter> methodFilters = new ArrayList<MethodFilter>();
-		this.addMethodReturnTypeFilter(methodFilters, specification);
-		this.addAnnotationTypeFilter(methodFilters, specification);
-		this.addArgumentTypesFilter(methodFilters, specification);
-		this.addUserDeclaredMethodsFilter(methodFilters);
+		addMethodReturnTypeFilter(methodFilters, specification);
+		addAnnotationTypeFilter(methodFilters, specification);
+		addArgumentTypesFilter(methodFilters, specification);
+		addUserDeclaredMethodsFilter(methodFilters);
 		return new CompositeFilter(methodFilters);
 	}
 
-	private void addMethodReturnTypeFilter(final List<MethodFilter> methodFilters, final MethodSpecification specification) {
+	private static void addMethodReturnTypeFilter(final List<MethodFilter> methodFilters, final MethodSpecification specification) {
 		if (specification.hasReturnType()) {
 			methodFilters.add(new MethodReturnTypeFilter(specification.getReturnType()));
 		}
 	}
 
-	private void addAnnotationTypeFilter(final List<MethodFilter> methodFilters, final MethodSpecification specification) {
+	private static void addAnnotationTypeFilter(final List<MethodFilter> methodFilters, final MethodSpecification specification) {
 		if (specification.hasAnnotationType()) {
 			methodFilters.add(new AnnotationTypeFilter(specification.getAnnotationType()));
 		}
 	}
 
-	private void addArgumentTypesFilter(final List<MethodFilter> methodFilters, final MethodSpecification specification) {
+	private static void addArgumentTypesFilter(final List<MethodFilter> methodFilters, final MethodSpecification specification) {
 		if (specification.hasArgumentTypes()) {
 			methodFilters.add(new ArgumentTypesFilter(specification.getArgumentTypes()));
 		}
 	}
 
-	private void addUserDeclaredMethodsFilter(final List<MethodFilter> methodFilters) {
+	private static void addUserDeclaredMethodsFilter(final List<MethodFilter> methodFilters) {
 		methodFilters.add(ReflectionUtils.USER_DECLARED_METHODS);
 	}
 

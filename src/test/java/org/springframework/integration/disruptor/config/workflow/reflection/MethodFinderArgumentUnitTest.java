@@ -16,15 +16,13 @@ public class MethodFinderArgumentUnitTest {
 	private final SomeArgs someArgs = new SomeArgs();
 	private final AssignableArgs assignableArgs = new AssignableArgs();
 
-	private final MethodFinder methodFinder = new MethodFinderImpl();
-
 	@Test
 	public void NoArg() {
 
 		final MethodSpecification specification = new MethodSpecification();
 		specification.setArgumentTypes();
 
-		final List<Method> methods = this.methodFinder.findMethods(this.noArg, specification);
+		final List<Method> methods = MethodFinderUtils.findMethods(this.noArg, specification);
 		assertEquals(2, methods.size());
 
 		final Method noArg1Method = ReflectionUtils.findMethod(NoArg.class, "noArg1");
@@ -39,7 +37,7 @@ public class MethodFinderArgumentUnitTest {
 		final MethodSpecification specification = new MethodSpecification();
 		specification.setArgumentTypes(String.class, Integer.class);
 
-		final List<Method> methods = this.methodFinder.findMethods(this.someArgs, specification);
+		final List<Method> methods = MethodFinderUtils.findMethods(this.someArgs, specification);
 		assertEquals(2, methods.size());
 
 		final Method twoArgs1Method = ReflectionUtils.findMethod(SomeArgs.class, "twoArgs1", String.class, Integer.class);
@@ -54,7 +52,7 @@ public class MethodFinderArgumentUnitTest {
 		final MethodSpecification specification = new MethodSpecification();
 		specification.setArgumentTypes(Integer.class, Integer.class, Object.class);
 
-		final List<Method> methods = this.methodFinder.findMethods(this.assignableArgs, specification);
+		final List<Method> methods = MethodFinderUtils.findMethods(this.assignableArgs, specification);
 		assertEquals(2, methods.size());
 
 		final Method threeArgs1Method = ReflectionUtils.findMethod(AssignableArgs.class, "threeArgs1", Number.class, Integer.class, Object.class);

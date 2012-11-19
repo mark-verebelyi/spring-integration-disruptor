@@ -19,15 +19,13 @@ public class MethodFinderAnnotationTypeUnitTest {
 	private final SingleAnnotatedMethod singleAnnotatedMethod = new SingleAnnotatedMethod();
 	private final MultipleAnnotatedMethods multipleAnnotatedMethods = new MultipleAnnotatedMethods();
 
-	private final MethodFinder methodFinder = new MethodFinderImpl();
-
 	@Test
 	public void Single_annotation_type() {
 
 		final MethodSpecification specification = new MethodSpecification();
 		specification.setAnnotationType(SomeAnnotation.class);
 
-		final List<Method> methods = this.methodFinder.findMethods(this.singleAnnotatedMethod, specification);
+		final List<Method> methods = MethodFinderUtils.findMethods(this.singleAnnotatedMethod, specification);
 		assertEquals(1, methods.size());
 
 		assertEquals(ReflectionUtils.findMethod(SingleAnnotatedMethod.class, "doWhatEver"), methods.get(0));
@@ -40,7 +38,7 @@ public class MethodFinderAnnotationTypeUnitTest {
 		final MethodSpecification specification = new MethodSpecification();
 		specification.setAnnotationType(SomeAnnotation.class);
 
-		final List<Method> methods = this.methodFinder.findMethods(this.multipleAnnotatedMethods, specification);
+		final List<Method> methods = MethodFinderUtils.findMethods(this.multipleAnnotatedMethods, specification);
 		assertEquals(2, methods.size());
 
 		final Method doWhateverMethod = ReflectionUtils.findMethod(MultipleAnnotatedMethods.class, "doWhatEver");
