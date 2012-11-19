@@ -8,10 +8,10 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.disruptor.config.annotation.EventFactory;
+import org.springframework.integration.disruptor.config.workflow.reflection.MethodFinderUtils;
+import org.springframework.integration.disruptor.config.workflow.reflection.MethodSpecification;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ReflectionUtils.MethodCallback;
-import org.springframework.util.ReflectionUtils.MethodFilter;
 
 public class MethodInvokingEventFactoryAdapter<T> implements com.lmax.disruptor.EventFactory<T> {
 
@@ -57,20 +57,16 @@ public class MethodInvokingEventFactoryAdapter<T> implements com.lmax.disruptor.
 	}
 
 	private List<Method> findSuitableMethods(final Object target, final Class<T> expectedType) {
-		final DefaultMethodCallback<T> callback = new DefaultMethodCallback<T>(expectedType);
-		ReflectionUtils.doWithMethods(target.getClass(), callback, new DefaultMethodFilter());
-		return callback.getMethods();
+		final MethodSpecification specification = new MethodSpecification();
+		specification.setReturnType(expectedType);
+		specification.setArgumentTypes();
+		return MethodFinderUtils.findMethods(target, specification);
 	}
 
 	private List<Method> narrowSuitableMethods(final List<Method> suitableMethods) {
-		final NarrowingMethodFilter narrowingMethodFilter = new NarrowingMethodFilter();
-		final List<Method> narrowedSuitableMethods = new ArrayList<Method>();
-		for (final Method suitableMethod : suitableMethods) {
-			if (narrowingMethodFilter.matches(suitableMethod)) {
-				narrowedSuitableMethods.add(suitableMethod);
-			}
-		}
-		return narrowedSuitableMethods;
+		final MethodSpecification specification = new MethodSpecification();
+		specification.setAnnotationType(EventFactory.class);
+		return MethodFinderUtils.findMethods(suitableMethods, specification);
 	}
 
 	private String toPlain(final List<Method> suitableMethods) {
@@ -80,57 +76,6 @@ public class MethodInvokingEventFactoryAdapter<T> implements com.lmax.disruptor.
 		}
 		Collections.sort(methodNames);
 		return methodNames.toString();
-	}
-
-	private static final class DefaultMethodCallback<T> implements MethodCallback {
-
-		private final List<Method> methods = new ArrayList<Method>();
-		private final Class<T> expectedType;
-
-		public DefaultMethodCallback(final Class<T> expectedType) {
-			this.expectedType = expectedType;
-		}
-
-		public void doWith(final Method method) throws IllegalArgumentException, IllegalAccessException {
-			if (this.hasExpectedReturnType(method) && this.hasNoArguments(method)) {
-				this.methods.add(method);
-			}
-		}
-
-		private boolean hasNoArguments(final Method method) {
-			return method.getParameterTypes().length == 0;
-		}
-
-		private boolean hasExpectedReturnType(final Method method) {
-			return this.expectedType.isAssignableFrom(method.getReturnType());
-		}
-
-		public List<Method> getMethods() {
-			return this.methods;
-		}
-
-	}
-
-	private static final class DefaultMethodFilter implements MethodFilter {
-
-		public boolean matches(final Method method) {
-			if (Object.class.equals(method.getDeclaringClass())) {
-				return false;
-			}
-			return true;
-		}
-
-	}
-
-	private static final class NarrowingMethodFilter implements MethodFilter {
-
-		public boolean matches(final Method method) {
-			if (method.isAnnotationPresent(EventFactory.class)) {
-				return true;
-			}
-			return false;
-		}
-
 	}
 
 }
