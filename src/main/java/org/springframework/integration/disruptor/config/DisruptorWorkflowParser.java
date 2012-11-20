@@ -24,7 +24,6 @@ public final class DisruptorWorkflowParser extends AbstractBeanDefinitionParser 
 	@Override
 	protected AbstractBeanDefinition parseInternal(final Element element, final ParserContext parserContext) {
 		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DisruptorWorkflowFactoryBean.class);
-		this.parseId(element, parserContext, builder);
 		this.parseEventType(element, parserContext, builder);
 		this.parseEventFactoryName(element, parserContext, builder);
 		this.parseExecutorName(element, parserContext, builder);
@@ -37,15 +36,6 @@ public final class DisruptorWorkflowParser extends AbstractBeanDefinitionParser 
 	private void parseTranslator(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
 		final String translatorAttribute = element.getAttribute("translator");
 		builder.addPropertyValue("translatorName", translatorAttribute);
-	}
-
-	private void parseId(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
-		final String idAttribute = element.getAttribute("id");
-		if (StringUtils.hasText(idAttribute)) {
-			builder.addPropertyValue("id", idAttribute);
-		} else {
-			parserContext.getReaderContext().error("'id' attribute is mandatory for 'workflow'", element);
-		}
 	}
 
 	private void parseEventFactoryName(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
@@ -76,7 +66,7 @@ public final class DisruptorWorkflowParser extends AbstractBeanDefinitionParser 
 			final List<Element> handlerGroupElements = DomUtils.getChildElementsByTagName(handlerGroupsElement, "handler-group");
 			if (handlerGroupElements.size() > 0) {
 				final Map<String, HandlerGroup> handlerGroups = this.parseHandlerGroups(handlerGroupElements, parserContext, builder);
-				builder.addConstructorArgValue(handlerGroups);
+				builder.addPropertyValue("handlerGroups", handlerGroups);
 			} else {
 				parserContext.getReaderContext().error("At least 1 'handler-group' is mandatory for 'handler-groups'", handlerGroupElements);
 			}
