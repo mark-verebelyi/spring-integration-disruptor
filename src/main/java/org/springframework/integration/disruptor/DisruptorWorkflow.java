@@ -102,7 +102,7 @@ public final class DisruptorWorkflow<T> implements MessageHandler, SmartLifecycl
 	}
 
 	public int getPhase() {
-		return Integer.MIN_VALUE;
+		return 0;
 	}
 
 	public boolean isAutoStartup() {

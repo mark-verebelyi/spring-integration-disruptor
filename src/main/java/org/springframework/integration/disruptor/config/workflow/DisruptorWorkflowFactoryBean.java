@@ -1,11 +1,9 @@
 package org.springframework.integration.disruptor.config.workflow;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -14,18 +12,14 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.integration.Message;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.disruptor.DisruptorWorkflow;
-import org.springframework.integration.disruptor.MessagingEvent;
 import org.springframework.integration.disruptor.config.HandlerGroup;
 import org.springframework.integration.disruptor.config.workflow.translator.MessageEventTranslator;
-import org.springframework.integration.disruptor.config.workflow.translator.MessagingEventTranslator;
-import org.springframework.integration.disruptor.config.workflow.translator.MethodInvokingMessageEventTranslator;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
 
-public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<DisruptorWorkflow<T>>, BeanFactoryAware {
+public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<DisruptorWorkflow<T>>, BeanFactoryAware, SmartLifecycle {
 
 	private final Log log = LogFactory.getLog(this.getClass());
 
@@ -75,9 +69,6 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 	private DisruptorWorkflow<T> instance;
 
 	public DisruptorWorkflow<T> getObject() throws Exception {
-		if (this.instance == null) {
-			this.instance = this.createInstance();
-		}
 		return this.instance;
 	}
 
@@ -89,75 +80,85 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 		return DisruptorWorkflow.class;
 	}
 
-	private DisruptorWorkflow<T> createInstance() throws Exception {
-
-		final RingBufferCreator<T> ringBufferCreator = new RingBufferCreator<T>(this.handlerGroups, this.eventType);
-		ringBufferCreator.setBeanFactory(this.beanFactory);
-		ringBufferCreator.setEventFactoryName(this.eventFactoryName);
-
-		final EventProcessorTrackingRingBuffer<T> ringBuffer = ringBufferCreator.createRingBuffer();
-		final Executor executor = this.createExecutorService(ringBuffer.getEventProcessors().size());
-		final MessageEventTranslator<T> messageEventTranslator = this.createTranslator();
-		final List<SubscribableChannel> subscribableChannels = this.createSubscribableChannels();
-
-		final DisruptorWorkflow<T> instance = new DisruptorWorkflow<T>(ringBuffer.getDelegate(), executor, ringBuffer.getEventProcessors(),
-				messageEventTranslator, subscribableChannels);
-
-		return instance;
-
+	public int getPhase() {
+		return this.instance != null ? this.instance.getPhase() : 0;
 	}
 
-	private List<SubscribableChannel> createSubscribableChannels() {
-		final List<SubscribableChannel> subscribableChannels = new ArrayList<SubscribableChannel>();
-		for (final String publisherChannelName : this.publisherChannelNames) {
-			final SubscribableChannel subscribableChannel = this.beanFactory.getBean(publisherChannelName, SubscribableChannel.class);
-			subscribableChannels.add(subscribableChannel);
+	public boolean isRunning() {
+		return this.instance != null ? this.instance.isRunning() : false;
+	}
+
+	public void start() {
+		if (this.instance == null) {
+			this.instance = this.createInstance();
 		}
-		return subscribableChannels;
+		if (this.isStopped()) {
+			this.instance.start();
+		}
 	}
 
-	private MessageEventTranslator<T> createTranslator() {
-		if (StringUtils.hasText(this.translatorName)) {
-			final Object translator = this.beanFactory.getBean(this.translatorName);
-			if (this.isNativeTranslator(translator)) {
-				this.log.info("'" + this.translatorName + "' is a native MessageEventTranslator.");
-				@SuppressWarnings("unchecked")
-				final MessageEventTranslator<T> messageToEventTranslator = (MessageEventTranslator<T>) translator;
-				return messageToEventTranslator;
-			} else {
-				this.log.info("'" + this.translatorName + "' is not a native MessageEventTranslator, configuring MethodInvokingMessageEventTranslator.");
-				return new MethodInvokingMessageEventTranslator<T>(translator, this.eventType);
+	private boolean isStopped() {
+		return !this.isRunning();
+	}
+
+	public void stop() {
+		if ((this.instance != null) && this.isRunning()) {
+			this.instance.stop();
+		}
+	}
+
+	public boolean isAutoStartup() {
+		return this.instance != null ? this.instance.isAutoStartup() : true;
+	}
+
+	public void stop(final Runnable callback) {
+		if (this.instance != null) {
+			this.instance.stop(callback);
+		}
+	}
+
+	private static void initialize(final Object object) {
+		try {
+			if (object instanceof InitializingBean) {
+				((InitializingBean) object).afterPropertiesSet();
 			}
-		} else {
-			if (this.isMessagingEventType()) {
-				this.log.info("'MessagingEvent' event type found, configuring default MessageEventTranslator");
-				@SuppressWarnings("unchecked")
-				final MessageEventTranslator<T> messagingEventTranslator = (MessageEventTranslator<T>) new MessagingEventTranslator();
-				return messagingEventTranslator;
-			} else {
-				throw new BeanCreationException("Can't create 'workflow' without MessageEventTranslator (the one exception "
-						+ "to this rule is when event type is MessagingEvent or empty)");
-			}
+		} catch (final Exception e) {
+			throw new BeanCreationException("Exception while initializing: " + object, e);
 		}
 	}
 
-	private boolean isNativeTranslator(final Object translator) {
-		return (translator instanceof MessageEventTranslator)
-				&& (ReflectionUtils.findMethod(translator.getClass(), "translateTo", Message.class, this.eventType) != null);
-	}
+	private DisruptorWorkflow<T> createInstance() {
 
-	private boolean isMessagingEventType() {
-		return MessagingEvent.class.isAssignableFrom(this.eventType);
-	}
+		final RingBufferFactory<T> ringBufferFactory = new RingBufferFactory<T>();
+		ringBufferFactory.setBeanFactory(this.beanFactory);
+		ringBufferFactory.setEventFactoryName(this.eventFactoryName);
+		ringBufferFactory.setEventType(this.eventType);
+		ringBufferFactory.setHandlerGroups(this.handlerGroups);
+		initialize(ringBufferFactory);
 
-	private Executor createExecutorService(final int numberOfEventProcessors) {
-		if (StringUtils.hasText(this.executorName)) {
-			this.log.info("Configuring DisruptorWorkflow with Executor named '" + this.executorName + "'.");
-			return this.beanFactory.getBean(this.executorName, Executor.class);
-		} else {
-			this.log.info("No bean named 'executor' has been explicitly defined. Therefore, a default Executor will be created.");
-			return Executors.newCachedThreadPool();
-		}
+		final ExecutorServiceFactory executorServiceFactory = new ExecutorServiceFactory();
+		executorServiceFactory.setBeanFactory(this.beanFactory);
+		executorServiceFactory.setExecutorName(this.executorName);
+		initialize(executorServiceFactory);
+
+		final MessageEventTranslatorFactory<T> messageEventTranslatorFactory = new MessageEventTranslatorFactory<T>();
+		messageEventTranslatorFactory.setBeanFactory(this.beanFactory);
+		messageEventTranslatorFactory.setEventType(this.eventType);
+		messageEventTranslatorFactory.setTranslatorName(this.translatorName);
+		initialize(messageEventTranslatorFactory);
+
+		final SubscribableChannelFactory subscribableChannelFactory = new SubscribableChannelFactory();
+		subscribableChannelFactory.setBeanFactory(this.beanFactory);
+		subscribableChannelFactory.setPublisherChannelNames(this.publisherChannelNames);
+		initialize(subscribableChannelFactory);
+
+		final EventProcessorTrackingRingBuffer<T> ringBuffer = ringBufferFactory.createRingBuffer();
+		final Executor executor = executorServiceFactory.createExecutorService();
+		final MessageEventTranslator<T> messageEventTranslator = messageEventTranslatorFactory.createTranslator();
+		final List<SubscribableChannel> subscribableChannels = subscribableChannelFactory.createSubscribableChannels();
+
+		return new DisruptorWorkflow<T>(ringBuffer.getDelegate(), executor, ringBuffer.getEventProcessors(), messageEventTranslator, subscribableChannels);
+
 	}
 
 }

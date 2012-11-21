@@ -25,4 +25,5 @@ public class DisruptorWorkflowIntegrationTest {
 		this.channel1.send(MessageBuilder.withPayload("TEST").build());
 		TimeUnit.SECONDS.sleep(30);
 	}
+
 }

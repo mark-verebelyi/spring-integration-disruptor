@@ -9,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.disruptor.config.HandlerGroup;
 import org.springframework.integration.disruptor.config.workflow.eventhandler.MethodInvokingEventHandler;
 import org.springframework.util.ReflectionUtils;
@@ -21,21 +22,12 @@ import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.Sequence;
 import com.lmax.disruptor.SequenceBarrier;
 
-final class RingBufferCreator<T> implements BeanFactoryAware {
+final class RingBufferFactory<T> implements BeanFactoryAware, InitializingBean {
 
 	private final Log log = LogFactory.getLog(this.getClass());
 
-	private final Map<String, HandlerGroup> handlerGroups;
-	private final DependencyGraph<List<EventProcessor>> depGraph;
-	private final DependencyGraph<List<EventProcessor>> inverseDepGraph;
-	private final Class<T> eventType;
-
-	public RingBufferCreator(final Map<String, HandlerGroup> handlerGroups, final Class<T> eventType) {
-		this.handlerGroups = handlerGroups;
-		this.depGraph = createDependencyGraph(handlerGroups.values());
-		this.inverseDepGraph = this.depGraph.inverse();
-		this.eventType = eventType;
-	}
+	private DependencyGraph<List<EventProcessor>> depGraph;
+	private DependencyGraph<List<EventProcessor>> inverseDepGraph;
 
 	private BeanFactory beanFactory;
 
@@ -49,7 +41,24 @@ final class RingBufferCreator<T> implements BeanFactoryAware {
 		this.eventFactoryName = eventFactoryName;
 	}
 
-	EventProcessorTrackingRingBuffer<T> createRingBuffer() {
+	private Map<String, HandlerGroup> handlerGroups;
+
+	public void setHandlerGroups(final Map<String, HandlerGroup> handlerGroups) {
+		this.handlerGroups = handlerGroups;
+	}
+
+	private Class<T> eventType;
+
+	public void setEventType(final Class<T> eventType) {
+		this.eventType = eventType;
+	}
+
+	public void afterPropertiesSet() throws Exception {
+		this.depGraph = createDependencyGraph(this.handlerGroups.values());
+		this.inverseDepGraph = this.depGraph.inverse();
+	}
+
+	public EventProcessorTrackingRingBuffer<T> createRingBuffer() {
 		final EventProcessorTrackingRingBuffer<T> ringBuffer = this.initializeRingBuffer();
 		this.setEventHandlers(ringBuffer);
 		this.setGatingSequences(ringBuffer.getDelegate());
