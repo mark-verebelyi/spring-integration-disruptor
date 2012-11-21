@@ -10,6 +10,7 @@
 		<config>src/test/resources/spring/namespace-test-config.xml</config>
 		<config>src/test/resources/spring/simple-disruptor-channel-test-config.xml</config>
 		<config>src/test/resources/spring/workflow-namespace-test-config.xml</config>
+		<config>src/test/resources/spring/workflow-handler-order-test-config.xml</config>
 	</configs>
 	<configSets>
 	</configSets>
