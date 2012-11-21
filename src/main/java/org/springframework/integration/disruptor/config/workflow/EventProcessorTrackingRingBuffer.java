@@ -13,7 +13,7 @@ class EventProcessorTrackingRingBuffer<T> {
 	private final RingBuffer<T> delegate;
 	private final List<EventProcessor> eventProcessors;
 
-	public EventProcessorTrackingRingBuffer(final RingBuffer<T> delegate) {
+	EventProcessorTrackingRingBuffer(final RingBuffer<T> delegate) {
 		this.delegate = delegate;
 		this.eventProcessors = new ArrayList<EventProcessor>();
 	}

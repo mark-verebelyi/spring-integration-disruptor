@@ -17,7 +17,7 @@ final class DependencyGraphImpl<T> implements DependencyGraph<T> {
 	private final Map<Integer, String> inverseSymbolTable;
 	private final Map<Integer, T> dataMap;
 
-	public DependencyGraphImpl() {
+	DependencyGraphImpl() {
 		this.size = 0;
 		this.adjacencyList = new ArrayList<List<Integer>>();
 		this.symbolTable = new HashMap<String, Integer>();
@@ -25,7 +25,7 @@ final class DependencyGraphImpl<T> implements DependencyGraph<T> {
 		this.dataMap = new HashMap<Integer, T>();
 	}
 
-	private DependencyGraphImpl(final int size, final List<List<Integer>> adjacencyList, final Map<String, Integer> symbolTable,
+	DependencyGraphImpl(final int size, final List<List<Integer>> adjacencyList, final Map<String, Integer> symbolTable,
 			final Map<Integer, String> inverseSymbolTable, final Map<Integer, T> dataMap) {
 		this.size = size;
 		this.adjacencyList = adjacencyList;

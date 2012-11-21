@@ -9,8 +9,6 @@ import com.lmax.disruptor.EventFactory;
 
 public class EventFactoryValidatorUnitTest {
 
-	private final EventFactoryValidator validator = new EventFactoryValidator();
-
 	private final EventFactory<?> stringEventFactory = new EventFactory<String>() {
 
 		public String newInstance() {
@@ -29,31 +27,36 @@ public class EventFactoryValidatorUnitTest {
 
 	@Test
 	public void Compatible_types() {
-		assertTrue(this.validator.canProduce(this.stringEventFactory, String.class));
+		final EventFactoryFactory<String> factory = new EventFactoryFactory<String>();
+		factory.setEventType(String.class);
+		assertTrue(factory.isNativeEventFactory(this.stringEventFactory));
 	}
 
 	@Test
 	public void Incompatible_types() {
-		assertFalse(this.validator.canProduce(this.stringEventFactory, Number.class));
+		final EventFactoryFactory<Number> factory = new EventFactoryFactory<Number>();
+		factory.setEventType(Number.class);
+		assertFalse(factory.isNativeEventFactory(this.stringEventFactory));
 	}
 
 	@Test
 	public void Assignable_types() {
-		assertTrue(this.validator.canProduce(this.integerEventFactory, Number.class));
+		final EventFactoryFactory<Number> factory = new EventFactoryFactory<Number>();
+		factory.setEventType(Number.class);
+		assertTrue(factory.isNativeEventFactory(this.integerEventFactory));
 	}
 
 	@Test
 	public void Not_an_EventFactory() {
-		assertFalse(this.validator.canProduce(new Thread(), Integer.class));
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void EventType_can_not_be_null() {
-		this.validator.canProduce(this.integerEventFactory, null);
+		final EventFactoryFactory<String> factory = new EventFactoryFactory<String>();
+		factory.setEventType(String.class);
+		assertFalse(factory.isNativeEventFactory(new Thread()));
 	}
 
 	public void Null_EventFactory_can_not_produce_anything() {
-		assertFalse(this.validator.canProduce(null, String.class));
+		final EventFactoryFactory<String> factory = new EventFactoryFactory<String>();
+		factory.setEventType(String.class);
+		assertFalse(factory.isNativeEventFactory(null));
 	}
 
 }

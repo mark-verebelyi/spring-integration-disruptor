@@ -112,7 +112,7 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 	}
 
 	public void stop(final Runnable callback) {
-		if (this.instance != null) {
+		if ((this.instance != null) && this.isRunning()) {
 			this.instance.stop(callback);
 		}
 	}

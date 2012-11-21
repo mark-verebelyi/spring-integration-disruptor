@@ -23,7 +23,7 @@ final class SubscribableChannelFactory implements BeanFactoryAware {
 		this.publisherChannelNames = publisherChannelNames;
 	}
 
-	List<SubscribableChannel> createSubscribableChannels() {
+	public List<SubscribableChannel> createSubscribableChannels() {
 		final List<SubscribableChannel> subscribableChannels = new ArrayList<SubscribableChannel>();
 		for (final String publisherChannelName : this.publisherChannelNames) {
 			final SubscribableChannel subscribableChannel = this.beanFactory.getBean(publisherChannelName, SubscribableChannel.class);

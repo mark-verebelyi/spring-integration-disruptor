@@ -129,8 +129,11 @@ final class RingBufferFactory<T> implements BeanFactoryAware, InitializingBean {
 	}
 
 	private EventFactory<T> createEventFactory(final Class<T> eventType) {
-		final EventFactoryCreator<T> eventFactoryCreator = new EventFactoryCreator<T>(this.beanFactory);
-		return eventFactoryCreator.createEventFactory(eventType, this.eventFactoryName);
+		final EventFactoryFactory<T> eventFactoryFactory = new EventFactoryFactory<T>();
+		eventFactoryFactory.setBeanFactory(this.beanFactory);
+		eventFactoryFactory.setName(this.eventFactoryName);
+		eventFactoryFactory.setEventType(eventType);
+		return eventFactoryFactory.createEventFactory();
 	}
 
 	private List<Sequence> findGatingSequences(final List<String> gatingDependencies) {
