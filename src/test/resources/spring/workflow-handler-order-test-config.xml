@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/integration/disruptor http://www.springframework.org/schema/integration/disruptor/spring-integration-disruptor-0.1.xsd">
 
 	
-	<int-disruptor:workflow id="workflow">
+	<int-disruptor:workflow id="workflow1">
 		<int-disruptor:publisher-channels>
 			<int-disruptor:publisher-channel ref="channel1"/>
 		</int-disruptor:publisher-channels>
@@ -29,37 +29,144 @@
 	
 	<int:channel id="channel1"/>
 	
-	<bean id="tracker" class="org.springframework.integration.disruptor.HandlerOrderTracker"/>
+	<bean id="tracker1" class="org.springframework.integration.disruptor.HandlerOrderTracker"/>
 	
 	<bean id="handler1" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
 		<constructor-arg value="handler1"/>
-		<constructor-arg ref="tracker"/>
+		<constructor-arg ref="tracker1"/>
 	</bean>
 	
 	<bean id="handler2" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
 		<constructor-arg value="handler2"/>
-		<constructor-arg ref="tracker"/>
+		<constructor-arg ref="tracker1"/>
 	</bean>
 	
 	<bean id="handler3" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
 		<constructor-arg value="handler3"/>
-		<constructor-arg ref="tracker"/>
+		<constructor-arg ref="tracker1"/>
 	</bean>
 	
 	<bean id="handler4" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
 		<constructor-arg value="handler4"/>
-		<constructor-arg ref="tracker"/>
+		<constructor-arg ref="tracker1"/>
 	</bean>
 	
 	<bean id="handler5" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
 		<constructor-arg value="handler5"/>
-		<constructor-arg ref="tracker"/>
+		<constructor-arg ref="tracker1"/>
 	</bean>
 	
 	<bean id="handler6" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
 		<constructor-arg value="handler6"/>
-		<constructor-arg ref="tracker"/>
+		<constructor-arg ref="tracker1"/>
 	</bean>
+	
+	<int-disruptor:workflow id="workflow2">
+		<int-disruptor:publisher-channels>
+			<int-disruptor:publisher-channel ref="channel2"/>
+		</int-disruptor:publisher-channels>
+		<int-disruptor:handler-groups>
+			<int-disruptor:handler-group group="group1">
+				<int-disruptor:handler ref="engineHandler"/>
+			</int-disruptor:handler-group>
+			<int-disruptor:handler-group group="group2">
+				<int-disruptor:handler ref="driverSeatHandler"/>
+				<int-disruptor:handler ref="passengerSeatHandler"/>
+				<int-disruptor:handler ref="rearSeatHandler"/>
+			</int-disruptor:handler-group>
+			<int-disruptor:handler-group group="group3" wait-for="group1">
+				<int-disruptor:handler ref="bonetHandler"/>
+			</int-disruptor:handler-group>
+			<int-disruptor:handler-group group="group4" wait-for="group2">
+				<int-disruptor:handler ref="frontDoorOneHandler"/>
+				<int-disruptor:handler ref="frontDoorTwoHandler"/>
+				<int-disruptor:handler ref="rearDoorOneHandler"/>
+				<int-disruptor:handler ref="rearDoorTwoHandler"/>
+			</int-disruptor:handler-group>
+			<int-disruptor:handler-group group="group5" wait-for="group3,group4">
+				<int-disruptor:handler ref="paintHandler"/>
+			</int-disruptor:handler-group>
+			<int-disruptor:handler-group group="group6" wait-for="group5">
+				<int-disruptor:handler ref="wheelOneHandler"/>			
+				<int-disruptor:handler ref="wheelTwoHandler"/>			
+				<int-disruptor:handler ref="wheelThreeHandler"/>			
+				<int-disruptor:handler ref="wheelFourHandler"/>			
+			</int-disruptor:handler-group>
+		</int-disruptor:handler-groups>
+	</int-disruptor:workflow>
+	
+	<int:channel id="channel2"/>
 
+	<bean id="tracker2" class="org.springframework.integration.disruptor.HandlerOrderTracker"/>
+	
+	<bean id="engineHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg value="engineHandler"/>
+		<constructor-arg ref="tracker2"/>
+	</bean>
+	
+	<bean id="driverSeatHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg value="driverSeatHandler"/>
+		<constructor-arg ref="tracker2"/>
+	</bean>
+	
+	<bean id="passengerSeatHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg value="passengerSeatHandler"/>
+		<constructor-arg ref="tracker2"/>
+	</bean>
+	
+	<bean id="rearSeatHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg value="rearSeatHandler"/>
+		<constructor-arg ref="tracker2"/>
+	</bean>
+	
+	<bean id="bonetHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg value="bonetHandler"/>
+		<constructor-arg ref="tracker2"/>
+	</bean>
+	
+	<bean id="frontDoorOneHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg value="frontDoorOneHandler"/>
+		<constructor-arg ref="tracker2"/>
+	</bean>
+	
+	<bean id="frontDoorTwoHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg value="frontDoorTwoHandler"/>
+		<constructor-arg ref="tracker2"/>
+	</bean>
+	
+	<bean id="rearDoorOneHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg value="rearDoorOneHandler"/>
+		<constructor-arg ref="tracker2"/>
+	</bean>
+	
+	<bean id="rearDoorTwoHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg value="rearDoorTwoHandler"/>
+		<constructor-arg ref="tracker2"/>
+	</bean>
+	
+	<bean id="paintHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg value="paintHandler"/>
+		<constructor-arg ref="tracker2"/>
+	</bean>
+	
+	<bean id="wheelOneHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg value="wheelOneHandler"/>
+		<constructor-arg ref="tracker2"/>
+	</bean>
+	
+	<bean id="wheelTwoHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg value="wheelTwoHandler"/>
+		<constructor-arg ref="tracker2"/>
+	</bean>
+	
+	<bean id="wheelThreeHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg value="wheelThreeHandler"/>
+		<constructor-arg ref="tracker2"/>
+	</bean>
+	
+	<bean id="wheelFourHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg value="wheelFourHandler"/>
+		<constructor-arg ref="tracker2"/>
+	</bean>
 
 </beans>
