@@ -10,7 +10,6 @@ import java.util.Set;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.disruptor.MessagingEvent;
 import org.springframework.integration.disruptor.config.workflow.DisruptorWorkflowFactoryBean;
@@ -19,13 +18,20 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
-public final class DisruptorWorkflowParser extends AbstractBeanDefinitionParser {
+import com.lmax.disruptor.ClaimStrategy;
+import com.lmax.disruptor.WaitStrategy;
+
+public final class DisruptorWorkflowParser extends AbstractRingBufferParser {
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(final Element element, final ParserContext parserContext) {
 		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DisruptorWorkflowFactoryBean.class);
 		this.parseEventType(element, parserContext, builder);
 		this.parseEventFactoryName(element, parserContext, builder);
+		final WaitStrategy waitStrategy = this.parseWaitStrategy(element, parserContext);
+		builder.addPropertyValue("waitStrategy", waitStrategy);
+		final ClaimStrategy claimStrategy = this.parseClaimStrategy(element, parserContext);
+		builder.addPropertyValue("claimStrategy", claimStrategy);
 		this.parseExecutorName(element, parserContext, builder);
 		this.parseTranslator(element, parserContext, builder);
 		this.parsePublisherChannelNames(element, parserContext, builder);

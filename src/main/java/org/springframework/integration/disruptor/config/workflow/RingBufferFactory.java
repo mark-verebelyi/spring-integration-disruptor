@@ -15,12 +15,14 @@ import org.springframework.integration.disruptor.config.workflow.eventhandler.Me
 import org.springframework.util.ReflectionUtils;
 
 import com.lmax.disruptor.BatchEventProcessor;
+import com.lmax.disruptor.ClaimStrategy;
 import com.lmax.disruptor.EventFactory;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.EventProcessor;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.Sequence;
 import com.lmax.disruptor.SequenceBarrier;
+import com.lmax.disruptor.WaitStrategy;
 
 final class RingBufferFactory<T> implements BeanFactoryAware, InitializingBean {
 
@@ -53,6 +55,18 @@ final class RingBufferFactory<T> implements BeanFactoryAware, InitializingBean {
 		this.eventType = eventType;
 	}
 
+	private WaitStrategy waitStrategy;
+
+	public void setWaitStrategy(final WaitStrategy waitStrategy) {
+		this.waitStrategy = waitStrategy;
+	}
+
+	private ClaimStrategy claimStrategy;
+
+	public void setClaimStrategy(final ClaimStrategy claimStrategy) {
+		this.claimStrategy = claimStrategy;
+	}
+
 	public void afterPropertiesSet() throws Exception {
 		this.depGraph = createDependencyGraph(this.handlerGroups.values());
 		this.inverseDepGraph = this.depGraph.inverse();
@@ -67,7 +81,7 @@ final class RingBufferFactory<T> implements BeanFactoryAware, InitializingBean {
 
 	private EventProcessorTrackingRingBuffer<T> initializeRingBuffer() {
 		final EventFactory<T> eventFactory = this.createEventFactory(this.eventType);
-		return new EventProcessorTrackingRingBuffer<T>(new RingBuffer<T>(eventFactory, 1024));
+		return new EventProcessorTrackingRingBuffer<T>(new RingBuffer<T>(eventFactory, this.claimStrategy, this.waitStrategy));
 	}
 
 	private void setEventHandlers(final EventProcessorTrackingRingBuffer<T> ringBuffer) {

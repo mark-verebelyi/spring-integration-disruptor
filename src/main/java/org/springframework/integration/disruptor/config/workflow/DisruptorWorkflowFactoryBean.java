@@ -19,6 +19,9 @@ import org.springframework.integration.disruptor.DisruptorWorkflow;
 import org.springframework.integration.disruptor.config.HandlerGroup;
 import org.springframework.integration.disruptor.config.workflow.translator.MessageEventTranslator;
 
+import com.lmax.disruptor.ClaimStrategy;
+import com.lmax.disruptor.WaitStrategy;
+
 public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<DisruptorWorkflow<T>>, BeanFactoryAware, SmartLifecycle {
 
 	private final Log log = LogFactory.getLog(this.getClass());
@@ -64,6 +67,18 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 
 	public void setHandlerGroups(final Map<String, HandlerGroup> handlerGroups) {
 		this.handlerGroups = handlerGroups;
+	}
+
+	private WaitStrategy waitStrategy;
+
+	public void setWaitStrategy(final WaitStrategy waitStrategy) {
+		this.waitStrategy = waitStrategy;
+	}
+
+	private ClaimStrategy claimStrategy;
+
+	public void setClaimStrategy(final ClaimStrategy claimStrategy) {
+		this.claimStrategy = claimStrategy;
 	}
 
 	private DisruptorWorkflow<T> instance;
@@ -134,6 +149,8 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 		ringBufferFactory.setEventFactoryName(this.eventFactoryName);
 		ringBufferFactory.setEventType(this.eventType);
 		ringBufferFactory.setHandlerGroups(this.handlerGroups);
+		ringBufferFactory.setWaitStrategy(this.waitStrategy);
+		ringBufferFactory.setClaimStrategy(this.claimStrategy);
 		initialize(ringBufferFactory);
 
 		final ExecutorServiceFactory executorServiceFactory = new ExecutorServiceFactory();

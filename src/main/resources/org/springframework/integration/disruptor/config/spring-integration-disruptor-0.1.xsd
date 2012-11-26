@@ -161,10 +161,8 @@
 				</xs:element>
 			</xs:sequence>
 			<xs:attributeGroup ref="BeanAttributeGroup" />
-			<xs:attribute name="buffer-size" type="xs:positiveInteger"
-				default="1024" />
+			<xs:attributeGroup ref="RingBufferConfigurationAttributeGroup"/>
 			<xs:attribute name="event-type" type="xs:string" />
-			<xs:attribute name="event-factory" type="xs:string" />
 			<xs:attribute name="translator" type="xs:string" />
 			<xs:attribute name="executor" type="xs:string" />
 		</xs:complexType>
