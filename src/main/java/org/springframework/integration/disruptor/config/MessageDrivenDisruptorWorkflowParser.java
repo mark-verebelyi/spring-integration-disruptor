@@ -21,7 +21,7 @@ import org.w3c.dom.Element;
 import com.lmax.disruptor.ClaimStrategy;
 import com.lmax.disruptor.WaitStrategy;
 
-public final class DisruptorWorkflowParser extends AbstractRingBufferParser {
+public final class MessageDrivenDisruptorWorkflowParser extends AbstractRingBufferParser {
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(final Element element, final ParserContext parserContext) {
@@ -52,7 +52,7 @@ public final class DisruptorWorkflowParser extends AbstractRingBufferParser {
 	private void parseEventType(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
 		final String eventTypeAttribute = element.getAttribute("event-type");
 		if (StringUtils.hasText(eventTypeAttribute)) {
-			builder.addPropertyValue("eventType", ClassUtils.resolveClassName(eventTypeAttribute, DisruptorWorkflowParser.class.getClassLoader()));
+			builder.addPropertyValue("eventType", ClassUtils.resolveClassName(eventTypeAttribute, MessageDrivenDisruptorWorkflowParser.class.getClassLoader()));
 		} else {
 			builder.addPropertyValue("eventType", MessagingEvent.class);
 		}

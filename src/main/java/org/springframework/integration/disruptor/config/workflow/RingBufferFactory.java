@@ -154,10 +154,19 @@ final class RingBufferFactory<T> implements BeanFactoryAware, InitializingBean {
 		final List<Sequence> sequences = new ArrayList<Sequence>();
 		for (final String gatingDependency : gatingDependencies) {
 			final HandlerGroup handlerGroup = this.handlerGroups.get(gatingDependency);
-			final List<Sequence> gatingSequences = this.findBarriers(handlerGroup);
+			final List<Sequence> gatingSequences = this.findGatingBarriers(handlerGroup);
 			sequences.addAll(gatingSequences);
 		}
 		return sequences;
+	}
+
+	private List<Sequence> findGatingBarriers(final HandlerGroup handlerGroup) {
+		final List<EventProcessor> eventProcessors = this.depGraph.getData(handlerGroup.getName());
+		final List<Sequence> gatingSequences = new ArrayList<Sequence>();
+		for (final EventProcessor eventProcessor : eventProcessors) {
+			gatingSequences.add(eventProcessor.getSequence());
+		}
+		return gatingSequences;
 	}
 
 	private List<EventProcessor> getDependeeEventProcessors(final HandlerGroup handlerGroup) {

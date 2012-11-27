@@ -15,14 +15,14 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.SubscribableChannel;
-import org.springframework.integration.disruptor.DisruptorWorkflow;
+import org.springframework.integration.disruptor.MessageDrivenDisruptorWorkflow;
 import org.springframework.integration.disruptor.config.HandlerGroup;
 import org.springframework.integration.disruptor.config.workflow.translator.MessageEventTranslator;
 
 import com.lmax.disruptor.ClaimStrategy;
 import com.lmax.disruptor.WaitStrategy;
 
-public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<DisruptorWorkflow<T>>, BeanFactoryAware, SmartLifecycle {
+public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<MessageDrivenDisruptorWorkflow<T>>, BeanFactoryAware, SmartLifecycle {
 
 	private final Log log = LogFactory.getLog(this.getClass());
 
@@ -81,9 +81,9 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 		this.claimStrategy = claimStrategy;
 	}
 
-	private DisruptorWorkflow<T> instance;
+	private MessageDrivenDisruptorWorkflow<T> instance;
 
-	public DisruptorWorkflow<T> getObject() throws Exception {
+	public MessageDrivenDisruptorWorkflow<T> getObject() throws Exception {
 		return this.instance;
 	}
 
@@ -92,7 +92,7 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 	}
 
 	public Class<?> getObjectType() {
-		return DisruptorWorkflow.class;
+		return MessageDrivenDisruptorWorkflow.class;
 	}
 
 	public int getPhase() {
@@ -142,7 +142,7 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 		}
 	}
 
-	private DisruptorWorkflow<T> createInstance() {
+	private MessageDrivenDisruptorWorkflow<T> createInstance() {
 
 		final RingBufferFactory<T> ringBufferFactory = new RingBufferFactory<T>();
 		ringBufferFactory.setBeanFactory(this.beanFactory);
@@ -174,7 +174,7 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Disrup
 		final MessageEventTranslator<T> messageEventTranslator = messageEventTranslatorFactory.createTranslator();
 		final List<SubscribableChannel> subscribableChannels = subscribableChannelFactory.createSubscribableChannels();
 
-		return new DisruptorWorkflow<T>(ringBuffer.getDelegate(), executor, ringBuffer.getEventProcessors(), messageEventTranslator, subscribableChannels);
+		return new MessageDrivenDisruptorWorkflow<T>(ringBuffer.getDelegate(), executor, ringBuffer.getEventProcessors(), messageEventTranslator, subscribableChannels);
 
 	}
 

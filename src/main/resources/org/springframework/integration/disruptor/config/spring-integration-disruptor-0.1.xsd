@@ -123,7 +123,18 @@
 		</xs:complexType>
 	</xs:element>
 
-	<xs:element name="workflow">
+	<xs:element name="message-driven-workflow">
+		<xs:annotation>
+			<xs:documentation><![CDATA[Configures a message-driven RingBuffer-backed
+				handler chain.]]>
+			</xs:documentation>
+			<xs:appinfo>
+				<tool:annotation>
+					<tool:exports
+						type="org.springframework.integration.disruptor.MessageDrivenDisruptorWorkflow" />
+				</tool:annotation>
+			</xs:appinfo>
+		</xs:annotation>
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element name="publisher-channels" minOccurs="0"
@@ -133,7 +144,16 @@
 							<xs:element name="publisher-channel" minOccurs="1"
 								maxOccurs="unbounded">
 								<xs:complexType>
-									<xs:attribute name="ref" type="xs:string" use="required" />
+									<xs:attribute name="ref" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:appinfo>
+												<tool:annotation kind="ref">
+													<tool:expected-type
+														type="org.springframework.integration.core.SubscribableChannel" />
+												</tool:annotation>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
 						</xs:sequence>
@@ -152,7 +172,11 @@
 											</xs:complexType>
 										</xs:element>
 									</xs:sequence>
-									<xs:attribute name="group" type="xs:string" use="required" />
+									<xs:attribute name="group" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation><![CDATA[The name of the group. Must be unique in this workflow.]]></xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
 									<xs:attribute name="wait-for" type="xs:string" />
 								</xs:complexType>
 							</xs:element>
@@ -161,7 +185,7 @@
 				</xs:element>
 			</xs:sequence>
 			<xs:attributeGroup ref="BeanAttributeGroup" />
-			<xs:attributeGroup ref="RingBufferConfigurationAttributeGroup"/>
+			<xs:attributeGroup ref="RingBufferConfigurationAttributeGroup" />
 			<xs:attribute name="event-type" type="xs:string" />
 			<xs:attribute name="translator" type="xs:string" />
 			<xs:attribute name="executor" type="xs:string" />

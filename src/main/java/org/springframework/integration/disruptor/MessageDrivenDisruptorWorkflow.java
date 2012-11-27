@@ -18,10 +18,7 @@ import com.lmax.disruptor.EventPublisher;
 import com.lmax.disruptor.EventTranslator;
 import com.lmax.disruptor.RingBuffer;
 
-public final class DisruptorWorkflow<T> implements MessageHandler, SmartLifecycle {
-
-	private volatile boolean running = false;
-	private volatile boolean autoStartup = true;
+public final class MessageDrivenDisruptorWorkflow<T> extends AbstractDisruptorWorkflow<T> implements MessageHandler, SmartLifecycle {
 
 	private final RingBuffer<T> ringBuffer;
 	private final Executor executor;
@@ -29,7 +26,7 @@ public final class DisruptorWorkflow<T> implements MessageHandler, SmartLifecycl
 	private final MessageEventTranslator<T> messageEventTranslator;
 	private final List<EventDrivenConsumer> eventDrivenConsumers;
 
-	public DisruptorWorkflow(final RingBuffer<T> ringBuffer, final Executor executor, final List<EventProcessor> eventProcessors,
+	public MessageDrivenDisruptorWorkflow(final RingBuffer<T> ringBuffer, final Executor executor, final List<EventProcessor> eventProcessors,
 			final MessageEventTranslator<T> messageEventTranslator, final List<SubscribableChannel> subscribableChannels) {
 		Assert.isTrue(ringBuffer != null, "RingBuffer can not be null");
 		Assert.isTrue(executor != null, "Executor can not be null");
@@ -55,20 +52,20 @@ public final class DisruptorWorkflow<T> implements MessageHandler, SmartLifecycl
 		new EventPublisher<T>(this.ringBuffer).publishEvent(new EventTranslator<T>() {
 
 			public void translateTo(final T event, final long sequence) {
-				DisruptorWorkflow.this.messageEventTranslator.translateTo(message, event);
+				MessageDrivenDisruptorWorkflow.this.messageEventTranslator.translateTo(message, event);
 			}
 
 		});
 	}
 
-	public void start() {
+	@Override
+	public void doStart() {
 		this.startEventProcessors();
 		this.startEventDrivenConsumers();
-		this.running = true;
 	}
 
-	public void stop() {
-		this.running = false;
+	@Override
+	public void doStop() {
 		this.stopEventDrivenConsumers();
 		this.stopEventProcessors();
 	}
@@ -95,22 +92,6 @@ public final class DisruptorWorkflow<T> implements MessageHandler, SmartLifecycl
 		for (final EventProcessor eventProcessor : this.eventProcessors) {
 			eventProcessor.halt();
 		}
-	}
-
-	public boolean isRunning() {
-		return this.running;
-	}
-
-	public int getPhase() {
-		return 0;
-	}
-
-	public boolean isAutoStartup() {
-		return this.autoStartup;
-	}
-
-	public void stop(final Runnable callback) {
-		this.stop();
 	}
 
 }

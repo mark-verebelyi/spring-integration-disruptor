@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/integration/disruptor http://www.springframework.org/schema/integration/disruptor/spring-integration-disruptor-0.1.xsd">
 
 	
-	<int-disruptor:workflow id="workflow1">
+	<int-disruptor:message-driven-workflow id="workflow1">
 		<int-disruptor:publisher-channels>
 			<int-disruptor:publisher-channel ref="channel1"/>
 		</int-disruptor:publisher-channels>
@@ -25,7 +25,7 @@
 				<int-disruptor:handler ref="handler6"/>
 			</int-disruptor:handler-group>
 		</int-disruptor:handler-groups>
-	</int-disruptor:workflow>
+	</int-disruptor:message-driven-workflow>
 	
 	<int:channel id="channel1"/>
 	
@@ -61,7 +61,7 @@
 		<constructor-arg ref="tracker1"/>
 	</bean>
 	
-	<int-disruptor:workflow id="workflow2">
+	<int-disruptor:message-driven-workflow id="workflow2">
 		<int-disruptor:publisher-channels>
 			<int-disruptor:publisher-channel ref="channel2"/>
 		</int-disruptor:publisher-channels>
@@ -93,7 +93,7 @@
 				<int-disruptor:handler ref="wheelFourHandler"/>			
 			</int-disruptor:handler-group>
 		</int-disruptor:handler-groups>
-	</int-disruptor:workflow>
+	</int-disruptor:message-driven-workflow>
 	
 	<int:channel id="channel2"/>
 
