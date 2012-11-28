@@ -1,6 +1,13 @@
 package org.springframework.integration.disruptor;
 
+import java.util.List;
+import java.util.concurrent.Executor;
+
 import org.springframework.context.SmartLifecycle;
+import org.springframework.util.Assert;
+
+import com.lmax.disruptor.EventProcessor;
+import com.lmax.disruptor.RingBuffer;
 
 abstract class AbstractDisruptorWorkflow<T> implements SmartLifecycle {
 
@@ -8,8 +15,22 @@ abstract class AbstractDisruptorWorkflow<T> implements SmartLifecycle {
 	private volatile boolean autoStartup = true;
 	private volatile int phase = 0;
 
+	private final RingBuffer<T> ringBuffer;
+	private final Executor executor;
+	private final List<EventProcessor> eventProcessors;
+
+	AbstractDisruptorWorkflow(final RingBuffer<T> ringBuffer, final Executor executor, final List<EventProcessor> eventProcessors) {
+		Assert.isTrue(ringBuffer != null, "RingBuffer can not be null");
+		Assert.isTrue(executor != null, "Executor can not be null");
+		Assert.isTrue(eventProcessors != null, "EventProcessors can not be null");
+		this.ringBuffer = ringBuffer;
+		this.executor = executor;
+		this.eventProcessors = eventProcessors;
+	}
+
 	public final void start() {
 		this.doStart();
+		this.startEventProcessors();
 		this.running = true;
 	}
 
@@ -17,6 +38,7 @@ abstract class AbstractDisruptorWorkflow<T> implements SmartLifecycle {
 
 	public final void stop() {
 		this.running = false;
+		this.stopEventProcessors();
 		this.doStop();
 	}
 
@@ -45,6 +67,22 @@ abstract class AbstractDisruptorWorkflow<T> implements SmartLifecycle {
 
 	public void setAutoStartup(final boolean autoStartup) {
 		this.autoStartup = autoStartup;
+	}
+
+	private void startEventProcessors() {
+		for (final EventProcessor eventProcessor : this.eventProcessors) {
+			this.executor.execute(eventProcessor);
+		}
+	}
+
+	private void stopEventProcessors() {
+		for (final EventProcessor eventProcessor : this.eventProcessors) {
+			eventProcessor.halt();
+		}
+	}
+
+	protected RingBuffer<T> getRingBuffer() {
+		return this.ringBuffer;
 	}
 
 }
