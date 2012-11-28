@@ -7,10 +7,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import org.junit.Test;
-import org.springframework.integration.disruptor.config.workflow.DependencyGraph;
-import org.springframework.integration.disruptor.config.workflow.DependencyGraphImpl;
-import org.springframework.integration.disruptor.config.workflow.DependencyTopologyBuilder;
-import org.springframework.integration.disruptor.config.workflow.DependencyTopologyBuilderImpl;
 
 public class DependencyTopologyBuilderUnitTest {
 
@@ -18,14 +14,14 @@ public class DependencyTopologyBuilderUnitTest {
 
 	@Test
 	public void Empty_Graph() {
-		final DependencyGraph<Object> graph = new DependencyGraphImpl<Object>();
+		final DependencyGraph graph = new DependencyGraphImpl();
 		assertNotNull(this.topologyBuilder.buildTopology(graph));
 		assertTrue(this.topologyBuilder.buildTopology(graph).isEmpty());
 	}
 
 	@Test
 	public void Graph_with_single_node() {
-		final DependencyGraph<Object> graph = new DependencyGraphImpl<Object>();
+		final DependencyGraph graph = new DependencyGraphImpl();
 		graph.addDependency("group1").dependsOnNone();
 		final List<String> topology = this.topologyBuilder.buildTopology(graph);
 		assertNotNull(topology);
@@ -35,7 +31,7 @@ public class DependencyTopologyBuilderUnitTest {
 
 	@Test
 	public void Graph_with_multiple_nodes_1() {
-		final DependencyGraph<Object> graph = new DependencyGraphImpl<Object>();
+		final DependencyGraph graph = new DependencyGraphImpl();
 		graph.addDependency("group2").dependsOn("group1");
 		graph.addDependency("group3").dependsOn("group1");
 		final List<String> topology = this.topologyBuilder.buildTopology(graph);
@@ -48,7 +44,7 @@ public class DependencyTopologyBuilderUnitTest {
 
 	@Test
 	public void Graph_with_multiple_nodes_2() {
-		final DependencyGraph<Object> graph = new DependencyGraphImpl<Object>();
+		final DependencyGraph graph = new DependencyGraphImpl();
 		graph.addDependency("group2").dependsOn("group1");
 		graph.addDependency("group3").dependsOn("group2");
 		graph.addDependency("group1").dependsOn("group4");

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.disruptor.MessagingEvent;
 import org.springframework.integration.disruptor.config.workflow.DisruptorWorkflowFactoryBean;
+import org.springframework.integration.disruptor.config.workflow.HandlerGroupDefinition;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -72,7 +73,7 @@ public final class MessageDrivenDisruptorWorkflowParser extends AbstractRingBuff
 			final List<Element> handlerGroupElements = DomUtils.getChildElementsByTagName(handlerGroupsElement, "handler-group");
 			if (handlerGroupElements.size() > 0) {
 				final Map<String, HandlerGroup> handlerGroups = this.parseHandlerGroups(handlerGroupElements, parserContext, builder);
-				builder.addPropertyValue("handlerGroups", handlerGroups);
+				builder.addPropertyValue("handlerGroupDefinition", new HandlerGroupDefinition(handlerGroups));
 			} else {
 				parserContext.getReaderContext().error("At least 1 'handler-group' is mandatory for 'handler-groups'", handlerGroupElements);
 			}
@@ -136,11 +137,12 @@ public final class MessageDrivenDisruptorWorkflowParser extends AbstractRingBuff
 	}
 
 	private String parseHandlerWaitFor(final Element handlerGroupElement) {
-		String waitFor = handlerGroupElement.getAttribute("wait-for");
-		if (!StringUtils.hasText(waitFor)) {
-			waitFor = "ring-buffer";
+		final String waitFor = handlerGroupElement.getAttribute("wait-for");
+		if (StringUtils.hasText(waitFor)) {
+			return waitFor;
+		} else {
+			return "ring-buffer";
 		}
-		return waitFor;
 	}
 
 	private String parseHandlerGroupName(final Element handlerGroupElement, final ParserContext parserContext) {

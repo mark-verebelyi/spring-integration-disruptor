@@ -4,6 +4,6 @@ import java.util.List;
 
 interface DependencyTopologyBuilder {
 
-	List<String> buildTopology(DependencyGraph<?> graph);
+	List<String> buildTopology(DependencyGraph graph);
 
 }

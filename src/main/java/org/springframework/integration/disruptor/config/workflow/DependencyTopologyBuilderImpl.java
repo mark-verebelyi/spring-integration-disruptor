@@ -6,7 +6,7 @@ import java.util.List;
 
 final class DependencyTopologyBuilderImpl implements DependencyTopologyBuilder {
 
-	public List<String> buildTopology(final DependencyGraph<?> graph) {
+	public List<String> buildTopology(final DependencyGraph graph) {
 		final TopologyBuilderContext tbc = new TopologyBuilderContext(graph);
 		for (int key = 0; key < graph.getSize(); key++) {
 			if (tbc.wasNotVisited(key)) {
@@ -16,7 +16,7 @@ final class DependencyTopologyBuilderImpl implements DependencyTopologyBuilder {
 		return graph.toSymbolicNames(tbc.queue);
 	}
 
-	private void visit(final DependencyGraph<?> graph, final int key, final TopologyBuilderContext tbc) {
+	private void visit(final DependencyGraph graph, final int key, final TopologyBuilderContext tbc) {
 		tbc.visit(key);
 		for (final int child : graph.adjacentKeys(key)) {
 			if (tbc.wasNotVisited(child)) {

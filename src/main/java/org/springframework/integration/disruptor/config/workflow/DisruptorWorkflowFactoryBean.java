@@ -1,7 +1,6 @@
 package org.springframework.integration.disruptor.config.workflow;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
@@ -16,10 +15,11 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.disruptor.MessageDrivenDisruptorWorkflow;
-import org.springframework.integration.disruptor.config.HandlerGroup;
 import org.springframework.integration.disruptor.config.workflow.translator.MessageEventTranslator;
 
 import com.lmax.disruptor.ClaimStrategy;
+import com.lmax.disruptor.EventProcessor;
+import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.WaitStrategy;
 
 public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<MessageDrivenDisruptorWorkflow<T>>, BeanFactoryAware, SmartLifecycle {
@@ -63,10 +63,10 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Messag
 		this.translatorName = translatorName;
 	}
 
-	private Map<String, HandlerGroup> handlerGroups;
+	private HandlerGroupDefinition handlerGroupDefinition;
 
-	public void setHandlerGroups(final Map<String, HandlerGroup> handlerGroups) {
-		this.handlerGroups = handlerGroups;
+	public void setHandlerGroupDefinition(final HandlerGroupDefinition handlerGroupDefinition) {
+		this.handlerGroupDefinition = handlerGroupDefinition;
 	}
 
 	private WaitStrategy waitStrategy;
@@ -148,7 +148,7 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Messag
 		ringBufferFactory.setBeanFactory(this.beanFactory);
 		ringBufferFactory.setEventFactoryName(this.eventFactoryName);
 		ringBufferFactory.setEventType(this.eventType);
-		ringBufferFactory.setHandlerGroups(this.handlerGroups);
+		ringBufferFactory.setHandlerGroupDefinition(this.handlerGroupDefinition);
 		ringBufferFactory.setWaitStrategy(this.waitStrategy);
 		ringBufferFactory.setClaimStrategy(this.claimStrategy);
 		initialize(ringBufferFactory);
@@ -169,12 +169,13 @@ public final class DisruptorWorkflowFactoryBean<T> implements FactoryBean<Messag
 		subscribableChannelFactory.setPublisherChannelNames(this.publisherChannelNames);
 		initialize(subscribableChannelFactory);
 
-		final EventProcessorTrackingRingBuffer<T> ringBuffer = ringBufferFactory.createRingBuffer();
+		final RingBuffer<T> ringBuffer = ringBufferFactory.createRingBuffer();
 		final Executor executor = executorServiceFactory.createExecutorService();
 		final MessageEventTranslator<T> messageEventTranslator = messageEventTranslatorFactory.createTranslator();
 		final List<SubscribableChannel> subscribableChannels = subscribableChannelFactory.createSubscribableChannels();
+		final List<EventProcessor> eventProcessors = this.handlerGroupDefinition.getAllEventProcessors();
 
-		return new MessageDrivenDisruptorWorkflow<T>(ringBuffer.getDelegate(), executor, ringBuffer.getEventProcessors(), messageEventTranslator, subscribableChannels);
+		return new MessageDrivenDisruptorWorkflow<T>(ringBuffer, executor, eventProcessors, messageEventTranslator, subscribableChannels);
 
 	}
 

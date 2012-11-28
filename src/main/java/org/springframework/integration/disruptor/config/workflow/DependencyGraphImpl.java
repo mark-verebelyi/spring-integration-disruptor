@@ -7,31 +7,27 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.integration.disruptor.config.HandlerGroup;
-import org.springframework.util.Assert;
 
-final class DependencyGraphImpl<T> implements DependencyGraph<T> {
+final class DependencyGraphImpl implements DependencyGraph {
 
 	private int size;
 	private final List<List<Integer>> adjacencyList;
 	private final Map<String, Integer> symbolTable;
 	private final Map<Integer, String> inverseSymbolTable;
-	private final Map<Integer, T> dataMap;
 
 	DependencyGraphImpl() {
 		this.size = 0;
 		this.adjacencyList = new ArrayList<List<Integer>>();
 		this.symbolTable = new HashMap<String, Integer>();
 		this.inverseSymbolTable = new HashMap<Integer, String>();
-		this.dataMap = new HashMap<Integer, T>();
 	}
 
 	DependencyGraphImpl(final int size, final List<List<Integer>> adjacencyList, final Map<String, Integer> symbolTable,
-			final Map<Integer, String> inverseSymbolTable, final Map<Integer, T> dataMap) {
+			final Map<Integer, String> inverseSymbolTable) {
 		this.size = size;
 		this.adjacencyList = adjacencyList;
 		this.symbolTable = symbolTable;
 		this.inverseSymbolTable = inverseSymbolTable;
-		this.dataMap = dataMap;
 	}
 
 	public List<String> getDependencies(final String depender) {
@@ -118,7 +114,7 @@ final class DependencyGraphImpl<T> implements DependencyGraph<T> {
 		return this.size;
 	}
 
-	public DependencyGraph<T> inverse() {
+	public DependencyGraph inverse() {
 		final List<List<Integer>> inverseAdjacencyList = new ArrayList<List<Integer>>();
 		for (int key = 0; key < this.adjacencyList.size(); key++) {
 			inverseAdjacencyList.add(key, new ArrayList<Integer>());
@@ -128,18 +124,7 @@ final class DependencyGraphImpl<T> implements DependencyGraph<T> {
 				inverseAdjacencyList.get(adjacentKey).add(key);
 			}
 		}
-		return new DependencyGraphImpl<T>(this.size, inverseAdjacencyList, this.symbolTable, this.inverseSymbolTable, this.dataMap);
-	}
-
-	public void putData(final String name, final T data) {
-		Assert.isTrue(this.symbolTable.containsKey(name), "No such node '" + name + "'");
-		final Integer key = this.symbolTable.get(name);
-		this.dataMap.put(key, data);
-	}
-
-	public T getData(final String name) {
-		final Integer key = this.symbolTable.get(name);
-		return key != null ? this.dataMap.get(key) : null;
+		return new DependencyGraphImpl(this.size, inverseAdjacencyList, this.symbolTable, this.inverseSymbolTable);
 	}
 
 	public List<String> getSymbolicNames() {
@@ -150,8 +135,8 @@ final class DependencyGraphImpl<T> implements DependencyGraph<T> {
 		return this.adjacencyList.get(key);
 	}
 
-	public static <T> DependencyGraph<T> forHandlerGroups(final Iterable<HandlerGroup> handlerGroups) {
-		final DependencyGraph<T> graph = new DependencyGraphImpl<T>();
+	public static DependencyGraph forHandlerGroups(final Iterable<HandlerGroup> handlerGroups) {
+		final DependencyGraph graph = new DependencyGraphImpl();
 		for (final HandlerGroup handlerGroup : handlerGroups) {
 			for (final String dependency : handlerGroup.getDependencies()) {
 				graph.addDependency(handlerGroup.getName()).dependsOn(dependency);

@@ -2,11 +2,14 @@ package org.springframework.integration.disruptor.config;
 
 import java.util.List;
 
+import com.lmax.disruptor.EventProcessor;
+
 public final class HandlerGroup {
 
 	private String name;
 	private List<String> dependencies;
 	private List<String> handlerBeanNames;
+	private List<EventProcessor> eventProcessors;
 
 	public String getName() {
 		return this.name;
@@ -30,6 +33,14 @@ public final class HandlerGroup {
 
 	public void setHandlerBeanNames(final List<String> handlerBeanNames) {
 		this.handlerBeanNames = handlerBeanNames;
+	}
+
+	public List<EventProcessor> getEventProcessors() {
+		return this.eventProcessors;
+	}
+
+	public void setEventProcessors(final List<EventProcessor> eventProcessors) {
+		this.eventProcessors = eventProcessors;
 	}
 
 	public boolean hasSingleDependency(final String name) {
