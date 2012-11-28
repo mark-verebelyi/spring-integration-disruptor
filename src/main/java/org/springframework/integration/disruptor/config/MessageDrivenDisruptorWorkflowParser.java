@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.disruptor.config.workflow.MessageDrivenDisruptorWorkflowFactoryBean;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -43,6 +44,11 @@ public final class MessageDrivenDisruptorWorkflowParser extends AbstractDisrupto
 			}
 		}
 		return publisherChannelNames;
+	}
+
+	@Override
+	protected Class<?> getFactoryClass() {
+		return MessageDrivenDisruptorWorkflowFactoryBean.class;
 	}
 
 }

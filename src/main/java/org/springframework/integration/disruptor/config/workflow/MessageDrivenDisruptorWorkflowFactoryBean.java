@@ -10,7 +10,6 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.disruptor.MessageDrivenDisruptorWorkflow;
 import org.springframework.integration.disruptor.config.workflow.translator.MessageEventTranslator;
 
-import com.lmax.disruptor.EventProcessor;
 import com.lmax.disruptor.RingBuffer;
 
 public final class MessageDrivenDisruptorWorkflowFactoryBean<T> extends AbstractDisruptorWorkflowFactoryBean<T> implements
@@ -61,9 +60,8 @@ public final class MessageDrivenDisruptorWorkflowFactoryBean<T> extends Abstract
 
 		final MessageEventTranslator<T> messageEventTranslator = messageEventTranslatorFactory.createTranslator();
 		final List<SubscribableChannel> subscribableChannels = subscribableChannelFactory.createSubscribableChannels();
-		final List<EventProcessor> eventProcessors = this.handlerGroupDefinition.getAllEventProcessors();
-
-		this.instance = new MessageDrivenDisruptorWorkflow<T>(ringBuffer, executor, eventProcessors, messageEventTranslator, subscribableChannels);
+		this.instance = new MessageDrivenDisruptorWorkflow<T>(ringBuffer, executor, this.handlerGroupDefinition.getAllEventProcessors(),
+				messageEventTranslator, subscribableChannels);
 
 	}
 

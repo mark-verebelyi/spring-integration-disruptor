@@ -11,7 +11,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.disruptor.MessagingEvent;
 import org.springframework.integration.disruptor.config.workflow.HandlerGroupDefinition;
-import org.springframework.integration.disruptor.config.workflow.MessageDrivenDisruptorWorkflowFactoryBean;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -24,7 +23,7 @@ abstract class AbstractDisruptorWorkflowParser extends AbstractRingBufferParser 
 
 	@Override
 	protected final AbstractBeanDefinition parseInternal(final Element element, final ParserContext parserContext) {
-		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageDrivenDisruptorWorkflowFactoryBean.class);
+		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getFactoryClass());
 		this.parseEventType(element, parserContext, builder);
 		this.parseEventFactoryName(element, parserContext, builder);
 		final WaitStrategy waitStrategy = this.parseWaitStrategy(element, parserContext);
@@ -37,6 +36,8 @@ abstract class AbstractDisruptorWorkflowParser extends AbstractRingBufferParser 
 		return builder.getBeanDefinition();
 	}
 
+	protected abstract Class<?> getFactoryClass();
+
 	protected abstract void doParseInternal(Element element, ParserContext parserContext, BeanDefinitionBuilder builder);
 
 	private void parseEventFactoryName(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
@@ -47,7 +48,7 @@ abstract class AbstractDisruptorWorkflowParser extends AbstractRingBufferParser 
 	private void parseEventType(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
 		final String eventTypeAttribute = element.getAttribute("event-type");
 		if (StringUtils.hasText(eventTypeAttribute)) {
-			builder.addPropertyValue("eventType", ClassUtils.resolveClassName(eventTypeAttribute, MessageDrivenDisruptorWorkflowParser.class.getClassLoader()));
+			builder.addPropertyValue("eventType", ClassUtils.resolveClassName(eventTypeAttribute, this.getClass().getClassLoader()));
 		} else {
 			builder.addPropertyValue("eventType", MessagingEvent.class);
 		}

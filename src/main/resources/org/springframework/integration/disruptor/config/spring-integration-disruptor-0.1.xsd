@@ -154,6 +154,16 @@
 		<xs:attribute name="event-type" type="xs:string" />
 		<xs:attribute name="executor" type="xs:string" />
 	</xs:complexType>
+	
+	<xs:element name="workflow">
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="workflowType">
+					<xs:attribute name="interface" type="xs:string"/>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
 
 	<xs:element name="message-driven-workflow">
 		<xs:annotation>
