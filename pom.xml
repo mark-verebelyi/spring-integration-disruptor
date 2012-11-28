@@ -10,6 +10,7 @@
 	<name>Spring Integration Disruptor Support</name>
 
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.version>3.0.7.RELEASE</spring.version>
 		<spring.integration.version>2.1.4.RELEASE</spring.integration.version>
 		<disruptor.version>2.10.3</disruptor.version>

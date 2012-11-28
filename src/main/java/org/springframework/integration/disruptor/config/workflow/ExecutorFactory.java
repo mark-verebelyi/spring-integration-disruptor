@@ -10,7 +10,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.util.StringUtils;
 
-final class ExecutorServiceFactory implements BeanFactoryAware {
+final class ExecutorFactory implements BeanFactoryAware {
 
 	private final Log log = LogFactory.getLog(this.getClass());
 
