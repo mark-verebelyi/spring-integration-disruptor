@@ -48,7 +48,6 @@
 
 	<xs:attributeGroup name="BeanAttributeGroup">
 		<xs:attribute name="id" type="xs:string" use="required" />
-		<xs:attribute name="scope" type="xs:string" />
 	</xs:attributeGroup>
 
 	<xs:element name="disruptor">
@@ -123,6 +122,39 @@
 		</xs:complexType>
 	</xs:element>
 
+	<xs:complexType name="workflowType">
+		<xs:sequence>
+			<xs:element name="handler-groups">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="handler-group" minOccurs="1"
+							maxOccurs="unbounded">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="handler" minOccurs="1" maxOccurs="unbounded">
+										<xs:complexType>
+											<xs:attribute name="ref" type="xs:string" use="required" />
+										</xs:complexType>
+									</xs:element>
+								</xs:sequence>
+								<xs:attribute name="group" type="xs:string" use="required">
+									<xs:annotation>
+										<xs:documentation><![CDATA[The name of the group. Must be unique in this workflow.]]></xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="wait-for" type="xs:string" />
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attributeGroup ref="BeanAttributeGroup" />
+		<xs:attributeGroup ref="RingBufferConfigurationAttributeGroup" />
+		<xs:attribute name="event-type" type="xs:string" />
+		<xs:attribute name="executor" type="xs:string" />
+	</xs:complexType>
+
 	<xs:element name="message-driven-workflow">
 		<xs:annotation>
 			<xs:documentation><![CDATA[Configures a message-driven RingBuffer-backed
@@ -136,59 +168,35 @@
 			</xs:appinfo>
 		</xs:annotation>
 		<xs:complexType>
-			<xs:sequence>
-				<xs:element name="publisher-channels" minOccurs="0"
-					maxOccurs="1">
-					<xs:complexType>
-						<xs:sequence>
-							<xs:element name="publisher-channel" minOccurs="1"
-								maxOccurs="unbounded">
-								<xs:complexType>
-									<xs:attribute name="ref" type="xs:string" use="required">
-										<xs:annotation>
-											<xs:appinfo>
-												<tool:annotation kind="ref">
-													<tool:expected-type
-														type="org.springframework.integration.core.SubscribableChannel" />
-												</tool:annotation>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-								</xs:complexType>
-							</xs:element>
-						</xs:sequence>
-					</xs:complexType>
-				</xs:element>
-				<xs:element name="handler-groups">
-					<xs:complexType>
-						<xs:sequence>
-							<xs:element name="handler-group" minOccurs="1"
-								maxOccurs="unbounded">
-								<xs:complexType>
-									<xs:sequence>
-										<xs:element name="handler" minOccurs="1" maxOccurs="unbounded">
-											<xs:complexType>
-												<xs:attribute name="ref" type="xs:string" use="required" />
-											</xs:complexType>
-										</xs:element>
-									</xs:sequence>
-									<xs:attribute name="group" type="xs:string" use="required">
-										<xs:annotation>
-											<xs:documentation><![CDATA[The name of the group. Must be unique in this workflow.]]></xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="wait-for" type="xs:string" />
-								</xs:complexType>
-							</xs:element>
-						</xs:sequence>
-					</xs:complexType>
-				</xs:element>
-			</xs:sequence>
-			<xs:attributeGroup ref="BeanAttributeGroup" />
-			<xs:attributeGroup ref="RingBufferConfigurationAttributeGroup" />
-			<xs:attribute name="event-type" type="xs:string" />
-			<xs:attribute name="translator" type="xs:string" />
-			<xs:attribute name="executor" type="xs:string" />
+			<xs:complexContent>
+				<xs:extension base="workflowType">
+					<xs:sequence>
+						<xs:element name="publisher-channels" minOccurs="0"
+							maxOccurs="1">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="publisher-channel" minOccurs="1"
+										maxOccurs="unbounded">
+										<xs:complexType>
+											<xs:attribute name="ref" type="xs:string" use="required">
+												<xs:annotation>
+													<xs:appinfo>
+														<tool:annotation kind="ref">
+															<tool:expected-type
+																type="org.springframework.integration.core.SubscribableChannel" />
+														</tool:annotation>
+													</xs:appinfo>
+												</xs:annotation>
+											</xs:attribute>
+										</xs:complexType>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="translator" type="xs:string" />
+				</xs:extension>
+			</xs:complexContent>
 		</xs:complexType>
 	</xs:element>
 

@@ -8,9 +8,6 @@
 
 	
 	<int-disruptor:message-driven-workflow id="workflow1">
-		<int-disruptor:publisher-channels>
-			<int-disruptor:publisher-channel ref="channel1"/>
-		</int-disruptor:publisher-channels>
 		<int-disruptor:handler-groups>
 			<int-disruptor:handler-group group="group1">
 				<int-disruptor:handler ref="handler1"/>
@@ -25,6 +22,9 @@
 				<int-disruptor:handler ref="handler6"/>
 			</int-disruptor:handler-group>
 		</int-disruptor:handler-groups>
+		<int-disruptor:publisher-channels>
+			<int-disruptor:publisher-channel ref="channel1"/>
+		</int-disruptor:publisher-channels>
 	</int-disruptor:message-driven-workflow>
 	
 	<int:channel id="channel1"/>
@@ -62,9 +62,6 @@
 	</bean>
 	
 	<int-disruptor:message-driven-workflow id="workflow2">
-		<int-disruptor:publisher-channels>
-			<int-disruptor:publisher-channel ref="channel2"/>
-		</int-disruptor:publisher-channels>
 		<int-disruptor:handler-groups>
 			<int-disruptor:handler-group group="group1">
 				<int-disruptor:handler ref="engineHandler"/>
@@ -93,6 +90,9 @@
 				<int-disruptor:handler ref="wheelFourHandler"/>			
 			</int-disruptor:handler-group>
 		</int-disruptor:handler-groups>
+		<int-disruptor:publisher-channels>
+			<int-disruptor:publisher-channel ref="channel2"/>
+		</int-disruptor:publisher-channels>
 	</int-disruptor:message-driven-workflow>
 	
 	<int:channel id="channel2"/>

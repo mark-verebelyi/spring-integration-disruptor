@@ -15,10 +15,6 @@
 	<int:channel id="channel2"/>
 
 	<int-disruptor:message-driven-workflow id="workflow" executor="executor">
-		<int-disruptor:publisher-channels>
-			<int-disruptor:publisher-channel ref="channel1"/>
-			<int-disruptor:publisher-channel ref="channel2"/>
-		</int-disruptor:publisher-channels>
 		<int-disruptor:handler-groups>
 			<int-disruptor:handler-group group="group1">
 				<int-disruptor:handler ref="handler1"/>
@@ -48,6 +44,10 @@
 				<int-disruptor:handler ref="handler11"/>
 			</int-disruptor:handler-group>			
 		</int-disruptor:handler-groups>
+		<int-disruptor:publisher-channels>
+			<int-disruptor:publisher-channel ref="channel1"/>
+			<int-disruptor:publisher-channel ref="channel2"/>
+		</int-disruptor:publisher-channels>
 	</int-disruptor:message-driven-workflow>
 	
 	<bean id="handler1" class="org.springframework.integration.disruptor.MessagingEventHandler"/>

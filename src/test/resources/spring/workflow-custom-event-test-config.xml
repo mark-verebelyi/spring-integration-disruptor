@@ -10,14 +10,14 @@
 		id="workflow" event-type="org.springframework.integration.disruptor.CustomEvent"
 		event-factory="eventFactory" translator="eventTranslator" buffer-size="2048"
 		claim-strategy="single-threaded" wait-strategy="yielding">
-		<int-disruptor:publisher-channels>
-			<int-disruptor:publisher-channel ref="channel" />
-		</int-disruptor:publisher-channels>
 		<int-disruptor:handler-groups>
 			<int-disruptor:handler-group group="group">
 				<int-disruptor:handler ref="eventHandler" />
 			</int-disruptor:handler-group>
 		</int-disruptor:handler-groups>
+		<int-disruptor:publisher-channels>
+			<int-disruptor:publisher-channel ref="channel" />
+		</int-disruptor:publisher-channels>
 	</int-disruptor:message-driven-workflow>
 
 	<int:publish-subscribe-channel id="channel" />
