@@ -12,7 +12,8 @@ import com.lmax.disruptor.RingBuffer;
 
 public final class DisruptorWorkflowFactoryBean<T> extends AbstractDisruptorWorkflowFactoryBean<T> implements FactoryBean<Object> {
 
-	private Class<?> interfaceClass;
+	private volatile Class<?> interfaceClass;
+	private volatile Object proxyInstance;
 
 	public void setInterfaceClass(final Class<?> interfaceClass) {
 		if (interfaceClass != null) {
@@ -27,11 +28,18 @@ public final class DisruptorWorkflowFactoryBean<T> extends AbstractDisruptorWork
 	}
 
 	public Object getObject() throws Exception {
-		return this.getInstance();
+		if (this.interfaceClass == null) {
+			return this.getInstance();
+		} else {
+			if (this.proxyInstance == null) {
+				this.proxyInstance = null;
+			}
+			return this.proxyInstance;
+		}
 	}
 
 	public Class<?> getObjectType() {
-		return null;
+		return this.interfaceClass != null ? this.interfaceClass : DisruptorWorkflow.class;
 	}
 
 	public boolean isSingleton() {

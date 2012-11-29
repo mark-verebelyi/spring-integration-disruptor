@@ -17,7 +17,11 @@ public final class MethodFinderUtils {
 	}
 
 	public static List<Method> findMethods(final Object target, final MethodSpecification specification) {
-		final List<Method> methods = Arrays.asList(ReflectionUtils.getAllDeclaredMethods(target.getClass()));
+		return findMethods(target.getClass(), specification);
+	}
+
+	public static List<Method> findMethods(final Class<?> targetClass, final MethodSpecification specification) {
+		final List<Method> methods = Arrays.asList(ReflectionUtils.getAllDeclaredMethods(targetClass));
 		return findMethods(methods, specification);
 	}
 

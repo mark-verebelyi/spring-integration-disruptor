@@ -35,7 +35,8 @@ public abstract class AbstractDisruptorWorkflow<T> extends IntegrationObjectSupp
 		this.running = true;
 	}
 
-	protected abstract void doStart();
+	protected void doStart() {
+	}
 
 	public final void stop() {
 		this.running = false;
@@ -43,7 +44,8 @@ public abstract class AbstractDisruptorWorkflow<T> extends IntegrationObjectSupp
 		this.doStop();
 	}
 
-	protected abstract void doStop();
+	protected void doStop() {
+	}
 
 	public final boolean isRunning() {
 		return this.running;
