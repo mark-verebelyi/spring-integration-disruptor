@@ -1,5 +1,6 @@
 package org.springframework.integration.disruptor.config.workflow;
 
+import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.springframework.beans.BeansException;
@@ -12,6 +13,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.disruptor.AbstractDisruptorWorkflow;
 
 import com.lmax.disruptor.ClaimStrategy;
+import com.lmax.disruptor.EventProcessor;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.WaitStrategy;
 
@@ -122,7 +124,9 @@ abstract class AbstractDisruptorWorkflowFactoryBean<T> implements SmartLifecycle
 
 	public final void start() {
 		if (this.instance == null) {
-			this.instance = this.createInstance();
+			final RingBuffer<T> ringBuffer = this.createRingBuffer();
+			final Executor executor = this.createExecutor();
+			this.instance = this.createInstance(ringBuffer, executor, this.handlerGroupDefinition.getAllEventProcessors());
 			this.instance.setBeanFactory(this.beanFactory);
 			this.instance.setBeanName(this.beanName);
 		}
@@ -131,7 +135,7 @@ abstract class AbstractDisruptorWorkflowFactoryBean<T> implements SmartLifecycle
 		}
 	}
 
-	protected abstract AbstractDisruptorWorkflow<T> createInstance();
+	protected abstract AbstractDisruptorWorkflow<T> createInstance(RingBuffer<T> ringBuffer, Executor executor, List<EventProcessor> eventProcessors);
 
 	public final void stop() {
 		if ((this.instance != null) && this.isRunning()) {

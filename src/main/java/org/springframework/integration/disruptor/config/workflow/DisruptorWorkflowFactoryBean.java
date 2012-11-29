@@ -1,10 +1,13 @@
 package org.springframework.integration.disruptor.config.workflow;
 
+import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.disruptor.DisruptorWorkflow;
+import org.springframework.util.Assert;
 
+import com.lmax.disruptor.EventProcessor;
 import com.lmax.disruptor.RingBuffer;
 
 public final class DisruptorWorkflowFactoryBean<T> extends AbstractDisruptorWorkflowFactoryBean<T> implements FactoryBean<Object> {
@@ -12,14 +15,15 @@ public final class DisruptorWorkflowFactoryBean<T> extends AbstractDisruptorWork
 	private Class<?> interfaceClass;
 
 	public void setInterfaceClass(final Class<?> interfaceClass) {
-		this.interfaceClass = interfaceClass;
+		if (interfaceClass != null) {
+			Assert.isTrue(interfaceClass.isInterface(), interfaceClass.getName() + " is not an interface.");
+			this.interfaceClass = interfaceClass;
+		}
 	}
 
 	@Override
-	protected DisruptorWorkflow<T> createInstance() {
-		final RingBuffer<T> ringBuffer = this.createRingBuffer();
-		final Executor executor = this.createExecutor();
-		return new DisruptorWorkflow<T>(ringBuffer, executor, this.handlerGroupDefinition.getAllEventProcessors());
+	protected DisruptorWorkflow<T> createInstance(final RingBuffer<T> ringBuffer, final Executor executor, final List<EventProcessor> eventProcessors) {
+		return new DisruptorWorkflow<T>(ringBuffer, executor, eventProcessors);
 	}
 
 	public Object getObject() throws Exception {
