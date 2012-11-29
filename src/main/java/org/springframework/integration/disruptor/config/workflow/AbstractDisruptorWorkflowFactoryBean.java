@@ -6,14 +6,16 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.disruptor.AbstractDisruptorWorkflow;
 
 import com.lmax.disruptor.ClaimStrategy;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.WaitStrategy;
 
-abstract class AbstractDisruptorWorkflowFactoryBean<T> implements SmartLifecycle, BeanFactoryAware, InitializingBean {
+abstract class AbstractDisruptorWorkflowFactoryBean<T> implements SmartLifecycle, BeanFactoryAware, InitializingBean, BeanNameAware {
 
 	protected BeanFactory beanFactory;
 
@@ -57,8 +59,15 @@ abstract class AbstractDisruptorWorkflowFactoryBean<T> implements SmartLifecycle
 		this.claimStrategy = claimStrategy;
 	}
 
+	private String beanName;
+
+	public void setBeanName(final String beanName) {
+		this.beanName = beanName;
+	}
+
 	private RingBufferFactory<T> ringBufferFactory;
 	private ExecutorFactory executorFactory;
+	private AbstractDisruptorWorkflow<T> instance;
 
 	public final void afterPropertiesSet() throws Exception {
 		this.ringBufferFactory = this.createRingBufferFactory();
@@ -103,41 +112,45 @@ abstract class AbstractDisruptorWorkflowFactoryBean<T> implements SmartLifecycle
 		}
 	}
 
-	protected abstract SmartLifecycle getInstance();
-
 	public final int getPhase() {
-		return this.getInstance() != null ? this.getInstance().getPhase() : 0;
+		return this.instance != null ? this.instance.getPhase() : 0;
 	}
 
 	public final boolean isRunning() {
-		return this.getInstance() != null ? this.getInstance().isRunning() : false;
+		return this.instance != null ? this.instance.isRunning() : false;
 	}
 
 	public final void start() {
-		if (this.getInstance() == null) {
-			this.createInstance();
+		if (this.instance == null) {
+			this.instance = this.createInstance();
+			this.instance.setBeanFactory(this.beanFactory);
+			this.instance.setBeanName(this.beanName);
 		}
 		if (!this.isRunning()) {
-			this.getInstance().start();
+			this.instance.start();
 		}
 	}
 
-	protected abstract void createInstance();
+	protected abstract AbstractDisruptorWorkflow<T> createInstance();
 
 	public final void stop() {
-		if ((this.getInstance() != null) && this.isRunning()) {
-			this.getInstance().stop();
+		if ((this.instance != null) && this.isRunning()) {
+			this.instance.stop();
 		}
 	}
 
 	public final boolean isAutoStartup() {
-		return this.getInstance() != null ? this.getInstance().isAutoStartup() : true;
+		return this.instance != null ? this.instance.isAutoStartup() : true;
 	}
 
 	public final void stop(final Runnable callback) {
-		if ((this.getInstance() != null) && this.isRunning()) {
-			this.getInstance().stop(callback);
+		if ((this.instance != null) && this.isRunning()) {
+			this.instance.stop(callback);
 		}
+	}
+
+	protected AbstractDisruptorWorkflow<T> getInstance() {
+		return this.instance;
 	}
 
 }

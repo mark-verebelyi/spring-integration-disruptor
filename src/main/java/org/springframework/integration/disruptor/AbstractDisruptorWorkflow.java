@@ -4,12 +4,13 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.util.Assert;
 
 import com.lmax.disruptor.EventProcessor;
 import com.lmax.disruptor.RingBuffer;
 
-abstract class AbstractDisruptorWorkflow<T> implements SmartLifecycle {
+public abstract class AbstractDisruptorWorkflow<T> extends IntegrationObjectSupport implements SmartLifecycle {
 
 	private volatile boolean running = false;
 	private volatile boolean autoStartup = true;

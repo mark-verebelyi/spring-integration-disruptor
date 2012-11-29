@@ -5,7 +5,6 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.disruptor.MessageDrivenDisruptorWorkflow;
 import org.springframework.integration.disruptor.config.workflow.translator.MessageEventTranslator;
@@ -27,10 +26,8 @@ public final class MessageDrivenDisruptorWorkflowFactoryBean<T> extends Abstract
 		this.translatorName = translatorName;
 	}
 
-	private MessageDrivenDisruptorWorkflow<T> instance;
-
 	public MessageDrivenDisruptorWorkflow<T> getObject() throws Exception {
-		return this.instance;
+		return (MessageDrivenDisruptorWorkflow<T>) this.getInstance();
 	}
 
 	public boolean isSingleton() {
@@ -42,7 +39,7 @@ public final class MessageDrivenDisruptorWorkflowFactoryBean<T> extends Abstract
 	}
 
 	@Override
-	protected void createInstance() {
+	protected MessageDrivenDisruptorWorkflow<T> createInstance() {
 
 		final RingBuffer<T> ringBuffer = this.createRingBuffer();
 		final Executor executor = this.createExecutor();
@@ -60,13 +57,9 @@ public final class MessageDrivenDisruptorWorkflowFactoryBean<T> extends Abstract
 
 		final MessageEventTranslator<T> messageEventTranslator = messageEventTranslatorFactory.createTranslator();
 		final List<SubscribableChannel> subscribableChannels = subscribableChannelFactory.createSubscribableChannels();
-		this.instance = new MessageDrivenDisruptorWorkflow<T>(ringBuffer, executor, this.handlerGroupDefinition.getAllEventProcessors(),
-				messageEventTranslator, subscribableChannels);
 
-	}
+		return new MessageDrivenDisruptorWorkflow<T>(ringBuffer, executor, this.handlerGroupDefinition.getAllEventProcessors(), messageEventTranslator,
+				subscribableChannels);
 
-	@Override
-	protected SmartLifecycle getInstance() {
-		return this.instance;
 	}
 }
