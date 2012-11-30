@@ -15,6 +15,8 @@
 		<spring.integration.version>2.1.4.RELEASE</spring.integration.version>
 		<disruptor.version>2.10.3</disruptor.version>
 		<junit.version>4.10</junit.version>
+		<mockito.version>1.9.5</mockito.version>
+		<commons.lang.version>3.1</commons.lang.version>
 	</properties>
 
 	<dependencyManagement>
@@ -41,6 +43,18 @@
 				<version>${spring.version}</version>
 				<scope>test</scope>
 			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>${mockito.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>${commons.lang.version}</version>
+				<scope>test</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -60,6 +74,14 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
 		</dependency>
 	</dependencies>
 

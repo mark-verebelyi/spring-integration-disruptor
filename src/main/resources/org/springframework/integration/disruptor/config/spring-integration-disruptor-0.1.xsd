@@ -133,7 +133,10 @@
 								<xs:sequence>
 									<xs:element name="handler" minOccurs="1" maxOccurs="unbounded">
 										<xs:complexType>
-											<xs:attribute name="ref" type="xs:string" use="required" />
+											<xs:sequence>
+												<xs:element ref="forwarding-event-handler" minOccurs="0"/>
+											</xs:sequence>
+											<xs:attribute name="ref" type="xs:string" />
 										</xs:complexType>
 									</xs:element>
 								</xs:sequence>
@@ -154,12 +157,12 @@
 		<xs:attribute name="event-type" type="xs:string" />
 		<xs:attribute name="executor" type="xs:string" />
 	</xs:complexType>
-	
+
 	<xs:element name="workflow">
 		<xs:complexType>
 			<xs:complexContent>
 				<xs:extension base="workflowType">
-					<xs:attribute name="interface" type="xs:string"/>
+					<xs:attribute name="interface" type="xs:string" />
 				</xs:extension>
 			</xs:complexContent>
 		</xs:complexType>
@@ -207,6 +210,24 @@
 					<xs:attribute name="translator" type="xs:string" />
 				</xs:extension>
 			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="forwarding-event-handler">
+		<xs:annotation>
+			<xs:documentation><![CDATA[Configures an event handler that forwards the event to a channel.]]>
+			</xs:documentation>
+			<xs:appinfo>
+				<tool:annotation>
+					<tool:exports type="com.lmax.disruptor.EventHandler" />
+				</tool:annotation>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="id" type="xs:string" />
+			<xs:attribute name="channel" type="xs:string" use="required" />
+			<xs:attribute name="transformer" type="xs:string" />
+			<xs:attribute name="converter" type="xs:string" />
 		</xs:complexType>
 	</xs:element>
 
