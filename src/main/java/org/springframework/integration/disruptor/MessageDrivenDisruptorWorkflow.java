@@ -6,6 +6,7 @@ import java.util.concurrent.Executor;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
@@ -14,21 +15,16 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.util.Assert;
 
 import com.lmax.disruptor.EventProcessor;
-import com.lmax.disruptor.EventPublisher;
-import com.lmax.disruptor.EventTranslator;
 import com.lmax.disruptor.RingBuffer;
 
 public final class MessageDrivenDisruptorWorkflow<T> extends AbstractDisruptorWorkflow<T> implements MessageHandler, SmartLifecycle {
 
-	private final MessageEventTranslator<T> messageEventTranslator;
 	private final List<EventDrivenConsumer> eventDrivenConsumers;
 
 	public MessageDrivenDisruptorWorkflow(final RingBuffer<T> ringBuffer, final Executor executor, final List<EventProcessor> eventProcessors,
 			final MessageEventTranslator<T> messageEventTranslator, final List<SubscribableChannel> subscribableChannels) {
-		super(ringBuffer, executor, eventProcessors);
-		Assert.isTrue(messageEventTranslator != null, "MessageEventTranslator can not be null");
+		super(ringBuffer, executor, eventProcessors, messageEventTranslator);
 		Assert.isTrue(subscribableChannels != null, "SubscribableChannels can not be null");
-		this.messageEventTranslator = messageEventTranslator;
 		this.eventDrivenConsumers = toEventDrivenConsumers(subscribableChannels, this);
 	}
 
@@ -41,13 +37,10 @@ public final class MessageDrivenDisruptorWorkflow<T> extends AbstractDisruptorWo
 	}
 
 	public void handleMessage(final Message<?> message) throws MessagingException {
-		new EventPublisher<T>(this.getRingBuffer()).publishEvent(new EventTranslator<T>() {
-
-			public void translateTo(final T event, final long sequence) {
-				MessageDrivenDisruptorWorkflow.this.messageEventTranslator.translateTo(message, event);
-			}
-
-		});
+		final boolean sent = this.publish(message);
+		if (!sent) {
+			throw new MessageDeliveryException(message);
+		}
 	}
 
 	@Override

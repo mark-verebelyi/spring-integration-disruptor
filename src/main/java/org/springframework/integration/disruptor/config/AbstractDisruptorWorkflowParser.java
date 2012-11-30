@@ -32,6 +32,7 @@ abstract class AbstractDisruptorWorkflowParser extends AbstractRingBufferParser 
 		builder.addPropertyValue("claimStrategy", claimStrategy);
 		this.parseExecutorName(element, parserContext, builder);
 		this.parseHandlerGroups(element, parserContext, builder);
+		this.parseTranslator(element, parserContext, builder);
 		this.doParseInternal(element, parserContext, builder);
 		return builder.getBeanDefinition();
 	}
@@ -39,6 +40,11 @@ abstract class AbstractDisruptorWorkflowParser extends AbstractRingBufferParser 
 	protected abstract Class<?> getFactoryClass();
 
 	protected abstract void doParseInternal(Element element, ParserContext parserContext, BeanDefinitionBuilder builder);
+
+	private void parseTranslator(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
+		final String translatorAttribute = element.getAttribute("translator");
+		builder.addPropertyValue("translatorName", translatorAttribute);
+	}
 
 	private void parseEventFactoryName(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
 		final String eventFactoryAttribute = element.getAttribute("event-factory");

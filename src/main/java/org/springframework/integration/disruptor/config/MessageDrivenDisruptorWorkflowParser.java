@@ -15,13 +15,7 @@ public final class MessageDrivenDisruptorWorkflowParser extends AbstractDisrupto
 
 	@Override
 	protected void doParseInternal(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
-		this.parseTranslator(element, parserContext, builder);
 		this.parsePublisherChannelNames(element, parserContext, builder);
-	}
-
-	private void parseTranslator(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
-		final String translatorAttribute = element.getAttribute("translator");
-		builder.addPropertyValue("translatorName", translatorAttribute);
 	}
 
 	private void parsePublisherChannelNames(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {

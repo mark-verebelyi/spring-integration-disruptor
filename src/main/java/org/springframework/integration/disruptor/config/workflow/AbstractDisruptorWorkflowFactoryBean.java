@@ -11,6 +11,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.disruptor.AbstractDisruptorWorkflow;
+import org.springframework.integration.disruptor.config.workflow.translator.MessageEventTranslator;
 
 import com.lmax.disruptor.ClaimStrategy;
 import com.lmax.disruptor.EventProcessor;
@@ -61,6 +62,12 @@ abstract class AbstractDisruptorWorkflowFactoryBean<T> implements SmartLifecycle
 		this.claimStrategy = claimStrategy;
 	}
 
+	protected String translatorName;
+
+	public void setTranslatorName(final String translatorName) {
+		this.translatorName = translatorName;
+	}
+
 	private String beanName;
 
 	public void setBeanName(final String beanName) {
@@ -69,11 +76,14 @@ abstract class AbstractDisruptorWorkflowFactoryBean<T> implements SmartLifecycle
 
 	private RingBufferFactory<T> ringBufferFactory;
 	private ExecutorFactory executorFactory;
+	private MessageEventTranslatorFactory<T> messageEventTranslatorFactory;
+
 	private AbstractDisruptorWorkflow<T> instance;
 
 	public final void afterPropertiesSet() throws Exception {
 		this.ringBufferFactory = this.createRingBufferFactory();
 		this.executorFactory = this.createExecutorFactory();
+		this.messageEventTranslatorFactory = this.createMessageEventTranslatorFactory();
 	}
 
 	protected RingBuffer<T> createRingBuffer() {
@@ -104,6 +114,15 @@ abstract class AbstractDisruptorWorkflowFactoryBean<T> implements SmartLifecycle
 		return executorFactory;
 	}
 
+	private MessageEventTranslatorFactory<T> createMessageEventTranslatorFactory() {
+		final MessageEventTranslatorFactory<T> messageEventTranslatorFactory = new MessageEventTranslatorFactory<T>();
+		messageEventTranslatorFactory.setBeanFactory(this.beanFactory);
+		messageEventTranslatorFactory.setEventType(this.eventType);
+		messageEventTranslatorFactory.setTranslatorName(this.translatorName);
+		initialize(messageEventTranslatorFactory);
+		return messageEventTranslatorFactory;
+	}
+
 	protected static void initialize(final Object object) {
 		try {
 			if (object instanceof InitializingBean) {
@@ -126,7 +145,8 @@ abstract class AbstractDisruptorWorkflowFactoryBean<T> implements SmartLifecycle
 		if (this.instance == null) {
 			final RingBuffer<T> ringBuffer = this.createRingBuffer();
 			final Executor executor = this.createExecutor();
-			this.instance = this.createInstance(ringBuffer, executor, this.handlerGroupDefinition.getAllEventProcessors());
+			final MessageEventTranslator<T> messageEventTranslator = this.messageEventTranslatorFactory.createTranslator();
+			this.instance = this.createInstance(ringBuffer, executor, this.handlerGroupDefinition.getAllEventProcessors(), messageEventTranslator);
 			this.instance.setBeanFactory(this.beanFactory);
 			this.instance.setBeanName(this.beanName);
 		}
@@ -135,7 +155,8 @@ abstract class AbstractDisruptorWorkflowFactoryBean<T> implements SmartLifecycle
 		}
 	}
 
-	protected abstract AbstractDisruptorWorkflow<T> createInstance(RingBuffer<T> ringBuffer, Executor executor, List<EventProcessor> eventProcessors);
+	protected abstract AbstractDisruptorWorkflow<T> createInstance(RingBuffer<T> ringBuffer, Executor executor, List<EventProcessor> eventProcessors,
+			MessageEventTranslator<T> messageEventTranslator);
 
 	public final void stop() {
 		if ((this.instance != null) && this.isRunning()) {

@@ -21,12 +21,6 @@ public final class MessageDrivenDisruptorWorkflowFactoryBean<T> extends Abstract
 		this.publisherChannelNames = publisherChannelNames;
 	}
 
-	private String translatorName;
-
-	public void setTranslatorName(final String translatorName) {
-		this.translatorName = translatorName;
-	}
-
 	public MessageDrivenDisruptorWorkflow<T> getObject() throws Exception {
 		return (MessageDrivenDisruptorWorkflow<T>) this.getInstance();
 	}
@@ -41,23 +35,17 @@ public final class MessageDrivenDisruptorWorkflowFactoryBean<T> extends Abstract
 
 	@Override
 	protected MessageDrivenDisruptorWorkflow<T> createInstance(final RingBuffer<T> ringBuffer, final Executor executor,
-			final List<EventProcessor> eventProcessors) {
-
-		final MessageEventTranslatorFactory<T> messageEventTranslatorFactory = new MessageEventTranslatorFactory<T>();
-		messageEventTranslatorFactory.setBeanFactory(this.beanFactory);
-		messageEventTranslatorFactory.setEventType(this.eventType);
-		messageEventTranslatorFactory.setTranslatorName(this.translatorName);
-		initialize(messageEventTranslatorFactory);
+			final List<EventProcessor> eventProcessors, final MessageEventTranslator<T> messageEventTranslator) {
 
 		final SubscribableChannelFactory subscribableChannelFactory = new SubscribableChannelFactory();
 		subscribableChannelFactory.setBeanFactory(this.beanFactory);
 		subscribableChannelFactory.setPublisherChannelNames(this.publisherChannelNames);
 		initialize(subscribableChannelFactory);
 
-		final MessageEventTranslator<T> messageEventTranslator = messageEventTranslatorFactory.createTranslator();
 		final List<SubscribableChannel> subscribableChannels = subscribableChannelFactory.createSubscribableChannels();
 
 		return new MessageDrivenDisruptorWorkflow<T>(ringBuffer, executor, eventProcessors, messageEventTranslator, subscribableChannels);
 
 	}
+
 }
