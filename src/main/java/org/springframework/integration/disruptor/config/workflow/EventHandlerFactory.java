@@ -2,6 +2,7 @@ package org.springframework.integration.disruptor.config.workflow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,10 +33,20 @@ final class EventHandlerFactory<T> implements BeanFactoryAware, InitializingBean
 		this.eventType = eventType;
 	}
 
+	private Map<String, List<EventHandler<T>>> resolvedHandlerMap;
+
+	public void setResolvedHandlerMap(final Map<String, List<EventHandler<T>>> resolvedHandlerMap) {
+		this.resolvedHandlerMap = resolvedHandlerMap;
+	}
+
 	public List<EventHandler<T>> createEventHandlers(final HandlerGroup handlerGroup) {
 		final List<EventHandler<T>> eventHandlers = new ArrayList<EventHandler<T>>();
 		for (final String handlerBeanName : handlerGroup.getHandlerBeanNames()) {
 			eventHandlers.add(this.createEventHandler(handlerBeanName));
+		}
+		final List<EventHandler<T>> resolvedHandlers = this.resolvedHandlerMap.get(handlerGroup.getName());
+		for (final EventHandler<T> resolvedHandler : resolvedHandlers) {
+			eventHandlers.add(resolvedHandler);
 		}
 		return eventHandlers;
 	}

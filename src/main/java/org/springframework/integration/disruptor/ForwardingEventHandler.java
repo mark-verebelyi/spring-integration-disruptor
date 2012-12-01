@@ -12,8 +12,7 @@ import org.springframework.util.Assert;
 import com.lmax.disruptor.EventHandler;
 
 /**
- * An {@link EventHandler} that can forward the event to a
- * {@link MessageChannel}.
+ * An {@link EventHandler} that can forward the event to a {@link MessageChannel}.
  */
 public final class ForwardingEventHandler extends AbstractEndpoint implements EventHandler<Object> {
 
@@ -29,19 +28,17 @@ public final class ForwardingEventHandler extends AbstractEndpoint implements Ev
 	private Transformer transformer;
 
 	/**
-	 * A {@link Transformer} which can transform the handled message type to the
-	 * designated message channel's type. If left null, then the message is
-	 * forwarded as is.
+	 * A {@link Transformer} which can transform the handled message type to the designated message channel's type. If left null, then the
+	 * message is forwarded as is.
 	 */
 	public void setTransformer(final Transformer transformer) {
 		this.transformer = transformer;
 	}
 
-	private MessageConverter converter;
+	private MessageConverter converter = new SimpleMessageConverter();
 
 	/**
-	 * {@link MessageConverter} that is used to transform the event to the
-	 * designated channel's type. If left null, then the
+	 * {@link MessageConverter} that is used to transform the event to the designated channel's type. If left null, then the
 	 */
 	public void setConverter(final MessageConverter converter) {
 		this.converter = converter;
@@ -50,16 +47,19 @@ public final class ForwardingEventHandler extends AbstractEndpoint implements Ev
 	private MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	/**
-	 * {@link MessagingTemplate} used for sending messages to the configured
-	 * channel.
+	 * {@link MessagingTemplate} used for sending messages to the configured channel.
 	 */
 	public void setMessagingTemplate(final MessagingTemplate messagingTemplate) {
 		this.messagingTemplate = messagingTemplate;
 	}
 
 	public void onEvent(final Object event, final long sequence, final boolean endOfBatch) throws Exception {
-		final Message<?> message = this.transform(this.convert(event));
+		final Message<?> message = this.convertAndTransform(event);
 		this.messagingTemplate.send(message);
+	}
+
+	private Message<?> convertAndTransform(final Object event) throws Exception {
+		return this.transform(this.convert(event));
 	}
 
 	private Message<?> transform(final Message<?> message) {
@@ -85,9 +85,6 @@ public final class ForwardingEventHandler extends AbstractEndpoint implements Ev
 	protected void onInit() throws Exception {
 		Assert.isTrue(this.channel != null, "'channel' attribtue is mandatory.");
 		this.messagingTemplate.setDefaultChannel(this.channel);
-		if (this.converter == null) {
-			this.converter = new SimpleMessageConverter();
-		}
 	}
 
 	@Override

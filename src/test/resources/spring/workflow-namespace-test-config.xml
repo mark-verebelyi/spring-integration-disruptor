@@ -19,6 +19,7 @@
 			<int-disruptor:handler-group group="group1">
 				<int-disruptor:handler ref="handler1"/>
 				<int-disruptor:handler ref="handler2"/>
+				<int-disruptor:forwarding-event-handler channel="logChannel"/>
 			</int-disruptor:handler-group>
 			<int-disruptor:handler-group group="group2">
 				<int-disruptor:handler ref="handler3"/>
@@ -61,5 +62,8 @@
 	<bean id="handler9" class="org.springframework.integration.disruptor.MessagingEventHandler"/>
 	<bean id="handler10" class="org.springframework.integration.disruptor.MessagingEventHandler"/>
 	<bean id="handler11" class="org.springframework.integration.disruptor.MessagingEventHandler"/>
+	
+	<int:channel id="logChannel"/>
+	<int:logging-channel-adapter channel="logChannel" level="INFO" log-full-message="true"/>
 
 </beans>

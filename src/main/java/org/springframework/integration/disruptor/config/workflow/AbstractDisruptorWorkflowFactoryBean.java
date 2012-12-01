@@ -1,6 +1,7 @@
 package org.springframework.integration.disruptor.config.workflow;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 import org.springframework.beans.BeansException;
@@ -14,6 +15,7 @@ import org.springframework.integration.disruptor.AbstractDisruptorWorkflow;
 import org.springframework.integration.disruptor.config.workflow.translator.MessageEventTranslator;
 
 import com.lmax.disruptor.ClaimStrategy;
+import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.EventProcessor;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.WaitStrategy;
@@ -74,6 +76,12 @@ abstract class AbstractDisruptorWorkflowFactoryBean<T> implements SmartLifecycle
 		this.beanName = beanName;
 	}
 
+	private Map<String, List<EventHandler<T>>> resolvedHandlerMap;
+
+	public void setResolvedHandlerMap(final Map<String, List<EventHandler<T>>> resolvedHandlerMap) {
+		this.resolvedHandlerMap = resolvedHandlerMap;
+	}
+
 	private RingBufferFactory<T> ringBufferFactory;
 	private ExecutorFactory executorFactory;
 	private MessageEventTranslatorFactory<T> messageEventTranslatorFactory;
@@ -98,6 +106,7 @@ abstract class AbstractDisruptorWorkflowFactoryBean<T> implements SmartLifecycle
 		ringBufferFactory.setHandlerGroupDefinition(this.handlerGroupDefinition);
 		ringBufferFactory.setWaitStrategy(this.waitStrategy);
 		ringBufferFactory.setClaimStrategy(this.claimStrategy);
+		ringBufferFactory.setResolvedHandlerMap(this.resolvedHandlerMap);
 		initialize(ringBufferFactory);
 		return ringBufferFactory;
 	}

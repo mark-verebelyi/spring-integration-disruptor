@@ -13,6 +13,7 @@
 		<config>src/test/resources/spring/workflow-handler-order-test-config.xml</config>
 		<config>src/test/resources/spring/workflow-custom-event-test-config.xml</config>
 		<config>src/test/resources/spring/workflow-gateway-test-config.xml</config>
+		<config>src/test/resources/spring/forwarding-event-handler-test-config.xml</config>
 	</configs>
 	<configSets>
 	</configSets>

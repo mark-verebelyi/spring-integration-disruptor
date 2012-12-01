@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-disruptor="http://www.springframework.org/schema/integration/disruptor"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/disruptor http://www.springframework.org/schema/integration/disruptor/spring-integration-disruptor-0.1.xsd">
+	
+	<int:channel id="target"/>
+	
+	<bean id="customConverter" class="org.springframework.integration.disruptor.config.forwardingeventhandler.CustomMessageConverter"/>
+	
+	<bean id="customTransformer" class="org.springframework.integration.disruptor.config.forwardingeventhandler.CustomTransformer"/>
+
+	<int-disruptor:forwarding-event-handler id="forwarder" channel="target" converter="customConverter" transformer="customTransformer"/>
+
+
+</beans>

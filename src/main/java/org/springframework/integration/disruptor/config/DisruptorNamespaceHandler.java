@@ -5,12 +5,13 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 public class DisruptorNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
-		this.registerBeanDefinitionParser("disruptor", new DisruptorParser());
-		this.registerBeanDefinitionParser("ring-buffer", new RingBufferParser());
-		this.registerBeanDefinitionParser("channel", new DisruptorChannelParser());
-		this.registerBeanDefinitionParser("messaging-event-factory", new MessagingEventFactoryParser());
-		this.registerBeanDefinitionParser("message-driven-workflow", new MessageDrivenDisruptorWorkflowParser());
-		this.registerBeanDefinitionParser("workflow", new DisruptorWorkflowParser());
+		this.registerBeanDefinitionParser(DisruptorNamespaceElements.ELEMENT_DISRUPTOR, new DisruptorParser());
+		this.registerBeanDefinitionParser(DisruptorNamespaceElements.ELEMENT_RING_BUFFER, new RingBufferParser());
+		this.registerBeanDefinitionParser(DisruptorNamespaceElements.ELEMENT_CHANNEL, new DisruptorChannelParser());
+		this.registerBeanDefinitionParser(DisruptorNamespaceElements.ELEMENT_MESSAGING_EVENT_FACTORY, new MessagingEventFactoryParser());
+		this.registerBeanDefinitionParser(DisruptorNamespaceElements.ELEMENT_MESSAGE_DRIVEN_WORKFLOW, new MessageDrivenDisruptorWorkflowParser());
+		this.registerBeanDefinitionParser(DisruptorNamespaceElements.ELEMENT_WORKFLOW, new DisruptorWorkflowParser());
+		this.registerBeanDefinitionParser(DisruptorNamespaceElements.ELEMENT_FORWARDING_EVENT_HANDLER, new ForwardingEventHandlerParser());
 	}
 
 }

@@ -6,8 +6,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.disruptor.MessagingEvent;
 import org.springframework.integration.disruptor.config.workflow.HandlerGroupDefinition;
@@ -73,8 +78,10 @@ abstract class AbstractDisruptorWorkflowParser extends AbstractRingBufferParser 
 		if (handlerGroupsElement != null) {
 			final List<Element> handlerGroupElements = DomUtils.getChildElementsByTagName(handlerGroupsElement, "handler-group");
 			if (handlerGroupElements.size() > 0) {
-				final Map<String, HandlerGroup> handlerGroups = this.parseHandlerGroups(handlerGroupElements, parserContext, builder);
+				final Map<String, List<BeanDefinitionHolder>> resolvedHandlerMap = new ManagedMap<String, List<BeanDefinitionHolder>>();
+				final Map<String, HandlerGroup> handlerGroups = this.parseHandlerGroups(handlerGroupElements, parserContext, builder, resolvedHandlerMap);
 				builder.addPropertyValue("handlerGroupDefinition", new HandlerGroupDefinition(handlerGroups));
+				builder.addPropertyValue("resolvedHandlerMap", resolvedHandlerMap);
 			} else {
 				parserContext.getReaderContext().error("At least 1 'handler-group' is mandatory for 'handler-groups'", handlerGroupElements);
 			}
@@ -84,11 +91,12 @@ abstract class AbstractDisruptorWorkflowParser extends AbstractRingBufferParser 
 	}
 
 	private Map<String, HandlerGroup> parseHandlerGroups(final List<Element> handlerGroupElements, final ParserContext parserContext,
-			final BeanDefinitionBuilder builder) {
+			final BeanDefinitionBuilder builder, final Map<String, List<BeanDefinitionHolder>> resolvedHandlers) {
 		final List<HandlerGroup> handlerGroups = new ArrayList<HandlerGroup>();
 		for (final Element handlerGroupElement : handlerGroupElements) {
 			final HandlerGroup handlerGroup = this.parseHandlerGroupElement(handlerGroupElement, parserContext, builder);
 			handlerGroups.add(handlerGroup);
+			resolvedHandlers.put(handlerGroup.getName(), handlerGroup.getHandlerBeanDefinitions());
 		}
 		final Map<String, HandlerGroup> handlerGroupMap = new HashMap<String, HandlerGroup>();
 		for (final HandlerGroup handlerGroup : handlerGroups) {
@@ -101,14 +109,30 @@ abstract class AbstractDisruptorWorkflowParser extends AbstractRingBufferParser 
 		final String group = this.parseHandlerGroupName(handlerGroupElement, parserContext);
 		final List<String> dependencies = this.parseHandlerGroupDependencies(handlerGroupElement);
 		final List<String> handlerBeanNames = this.parseHandlerBeanNames(handlerGroupElement, parserContext);
-		return this.newHandlerGroup(group, dependencies, handlerBeanNames);
+		final List<BeanDefinitionHolder> handlerBeanDefinitions = this.parseHandlerBeanDefinitions(handlerGroupElement, parserContext, builder);
+		return this.newHandlerGroup(group, dependencies, handlerBeanNames, handlerBeanDefinitions);
 	}
 
-	private HandlerGroup newHandlerGroup(final String group, final List<String> dependencies, final List<String> handlerBeanNames) {
+	private List<BeanDefinitionHolder> parseHandlerBeanDefinitions(final Element handlerGroupElement, final ParserContext parserContext,
+			final BeanDefinitionBuilder builder) {
+		final ManagedList<BeanDefinitionHolder> beanDefs = new ManagedList<BeanDefinitionHolder>();
+		final List<Element> elements = DomUtils.getChildElementsByTagName(handlerGroupElement, DisruptorNamespaceElements.ELEMENT_FORWARDING_EVENT_HANDLER);
+		for (final Element element : elements) {
+			final BeanDefinition beanDef = parserContext.getDelegate().parseCustomElement(element, builder.getBeanDefinition());
+			final String name = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry(), true);
+			final BeanDefinitionHolder beanDefHolder = new BeanDefinitionHolder(beanDef, name);
+			beanDefs.add(beanDefHolder);
+		}
+		return beanDefs;
+	}
+
+	private HandlerGroup newHandlerGroup(final String group, final List<String> dependencies, final List<String> handlerBeanNames,
+			final List<BeanDefinitionHolder> handlerBeanDefinitions) {
 		final HandlerGroup handlerGroup = new HandlerGroup();
 		handlerGroup.setName(group);
 		handlerGroup.setDependencies(dependencies);
 		handlerGroup.setHandlerBeanNames(handlerBeanNames);
+		handlerGroup.setHandlerBeanDefinitions(handlerBeanDefinitions);
 		return handlerGroup;
 	}
 

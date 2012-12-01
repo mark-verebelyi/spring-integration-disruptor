@@ -2,6 +2,7 @@ package org.springframework.integration.disruptor.config.workflow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -58,6 +59,12 @@ final class RingBufferFactory<T> implements BeanFactoryAware, InitializingBean {
 
 	public void setClaimStrategy(final ClaimStrategy claimStrategy) {
 		this.claimStrategy = claimStrategy;
+	}
+
+	private Map<String, List<EventHandler<T>>> resolvedHandlerMap;
+
+	public void setResolvedHandlerMap(final Map<String, List<EventHandler<T>>> resolvedHandlerMap) {
+		this.resolvedHandlerMap = resolvedHandlerMap;
 	}
 
 	public void afterPropertiesSet() throws Exception {
@@ -154,6 +161,7 @@ final class RingBufferFactory<T> implements BeanFactoryAware, InitializingBean {
 		final EventHandlerFactory<T> eventHandlerFactory = new EventHandlerFactory<T>();
 		eventHandlerFactory.setBeanFactory(this.beanFactory);
 		eventHandlerFactory.setEventType(this.eventType);
+		eventHandlerFactory.setResolvedHandlerMap(this.resolvedHandlerMap);
 		return eventHandlerFactory;
 	}
 

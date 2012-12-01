@@ -2,6 +2,8 @@ package org.springframework.integration.disruptor.config;
 
 import java.util.List;
 
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
+
 import com.lmax.disruptor.EventProcessor;
 
 public final class HandlerGroup {
@@ -9,6 +11,7 @@ public final class HandlerGroup {
 	private String name;
 	private List<String> dependencies;
 	private List<String> handlerBeanNames;
+	private List<BeanDefinitionHolder> handlerBeanDefinitions;
 	private List<EventProcessor> eventProcessors;
 
 	public String getName() {
@@ -35,6 +38,14 @@ public final class HandlerGroup {
 		this.handlerBeanNames = handlerBeanNames;
 	}
 
+	public List<BeanDefinitionHolder> getHandlerBeanDefinitions() {
+		return this.handlerBeanDefinitions;
+	}
+
+	public void setHandlerBeanDefinitions(final List<BeanDefinitionHolder> handlerBeanDefinitions) {
+		this.handlerBeanDefinitions = handlerBeanDefinitions;
+	}
+
 	public List<EventProcessor> getEventProcessors() {
 		return this.eventProcessors;
 	}
@@ -49,7 +60,8 @@ public final class HandlerGroup {
 
 	@Override
 	public String toString() {
-		return "HandlerGroup [name=" + this.name + ", dependencies=" + this.dependencies + ", handlerBeanNames=" + this.handlerBeanNames + "]";
+		return "HandlerGroup [name=" + this.name + ", dependencies=" + this.dependencies + ", handlerBeanNames=" + this.handlerBeanNames
+				+ ", handlerBeanDefinitions=" + this.handlerBeanDefinitions + ", eventProcessors=" + this.eventProcessors + "]";
 	}
 
 }

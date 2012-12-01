@@ -131,14 +131,15 @@
 							maxOccurs="unbounded">
 							<xs:complexType>
 								<xs:sequence>
-									<xs:element name="handler" minOccurs="1" maxOccurs="unbounded">
-										<xs:complexType>
-											<xs:sequence>
-												<xs:element ref="forwarding-event-handler" minOccurs="0"/>
-											</xs:sequence>
-											<xs:attribute name="ref" type="xs:string" />
-										</xs:complexType>
-									</xs:element>
+									<xs:choice minOccurs="1" maxOccurs="unbounded">
+										<xs:element name="handler">
+											<xs:complexType>
+												<xs:attribute name="ref" type="xs:string" />
+											</xs:complexType>
+										</xs:element>
+										<xs:element ref="forwarding-event-handler"
+											minOccurs="0" />
+									</xs:choice>
 								</xs:sequence>
 								<xs:attribute name="group" type="xs:string" use="required">
 									<xs:annotation>
@@ -225,9 +226,44 @@
 		</xs:annotation>
 		<xs:complexType>
 			<xs:attribute name="id" type="xs:string" />
-			<xs:attribute name="channel" type="xs:string" use="required" />
-			<xs:attribute name="transformer" type="xs:string" />
-			<xs:attribute name="converter" type="xs:string" />
+			<xs:attribute name="channel" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation><![CDATA[The MessageChannel where the event is forwarded.]]>
+					</xs:documentation>
+					<xs:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="transformer" type="xs:string">
+				<xs:annotation>
+					<xs:documentation><![CDATA[The Transformer which can transform the message 
+before forwarding. If not set then no transformation occurs.]]>
+					</xs:documentation>
+					<xs:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.transformer.Transformer" />
+						</tool:annotation>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="converter" type="xs:string">
+				<xs:annotation>
+					<xs:documentation><![CDATA[The MessageConverter that can convert events to messages. 
+If not set then a default SimpleMessageConverter is registered.]]>
+					</xs:documentation>
+					<xs:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.support.converter.MessageConverter" />
+						</tool:annotation>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:attribute>
 		</xs:complexType>
 	</xs:element>
 
