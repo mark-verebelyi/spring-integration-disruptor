@@ -110,6 +110,9 @@ abstract class AbstractDisruptorWorkflowParser extends AbstractRingBufferParser 
 		final List<String> dependencies = this.parseHandlerGroupDependencies(handlerGroupElement);
 		final List<String> handlerBeanNames = this.parseHandlerBeanNames(handlerGroupElement, parserContext);
 		final List<BeanDefinitionHolder> handlerBeanDefinitions = this.parseHandlerBeanDefinitions(handlerGroupElement, parserContext, builder);
+		if (handlerBeanNames.isEmpty() && handlerBeanDefinitions.isEmpty()) {
+			parserContext.getReaderContext().error("At least 1 handler is mandatory for 'handler-group'", handlerGroupElement);
+		}
 		return this.newHandlerGroup(group, dependencies, handlerBeanNames, handlerBeanDefinitions);
 	}
 
@@ -139,18 +142,13 @@ abstract class AbstractDisruptorWorkflowParser extends AbstractRingBufferParser 
 	private List<String> parseHandlerBeanNames(final Element handlerGroupElement, final ParserContext parserContext) {
 		final List<String> handlerBeanNames = new ArrayList<String>();
 		final List<Element> handlerElements = DomUtils.getChildElementsByTagName(handlerGroupElement, "handler");
-		if (handlerElements.size() > 0) {
-			for (final Element handlerElement : handlerElements) {
-				final String refAttribute = handlerElement.getAttribute("ref");
-				if (StringUtils.hasText(refAttribute)) {
-					handlerBeanNames.add(refAttribute);
-				} else {
-					parserContext.getReaderContext().error("'ref' attribute is mandatory for 'handler'", handlerElement);
-				}
+		for (final Element handlerElement : handlerElements) {
+			final String refAttribute = handlerElement.getAttribute("ref");
+			if (StringUtils.hasText(refAttribute)) {
+				handlerBeanNames.add(refAttribute);
+			} else {
+				parserContext.getReaderContext().error("'ref' attribute is mandatory for 'handler'", handlerElement);
 			}
-
-		} else {
-			parserContext.getReaderContext().error("At least 1 'handler' is mandatory for 'handler-group'", handlerGroupElement);
 		}
 		return handlerBeanNames;
 	}

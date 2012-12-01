@@ -12,7 +12,7 @@
 	
 	<bean id="customTransformer" class="org.springframework.integration.disruptor.config.forwardingeventhandler.CustomTransformer"/>
 
-	<int-disruptor:forwarding-event-handler id="forwarder" channel="target" converter="customConverter" transformer="customTransformer"/>
+	<int-disruptor:forwarding-event-handler id="forwarder" channel="target" converter="customConverter" transformer="customTransformer" />
 
 
 </beans>

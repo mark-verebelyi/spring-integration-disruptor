@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-disruptor="http://www.springframework.org/schema/integration/disruptor"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd
+		http://www.springframework.org/schema/integration/disruptor http://www.springframework.org/schema/integration/disruptor/spring-integration-disruptor-0.1.xsd">
+
+	<int-disruptor:workflow id="source">
+		<int-disruptor:handler-groups>
+			<int-disruptor:handler-group group="group">
+				<int-disruptor:forwarding-event-handler channel="mediator"/>
+			</int-disruptor:handler-group>
+		</int-disruptor:handler-groups>
+	</int-disruptor:workflow>
+	
+	<int:publish-subscribe-channel id="mediator"/>
+	
+	<int-disruptor:message-driven-workflow id="target">
+		<int-disruptor:handler-groups>
+			<int-disruptor:handler-group group="group">
+				<int-disruptor:handler ref="trackingEventHandler"/>
+			</int-disruptor:handler-group>
+		</int-disruptor:handler-groups>
+		<int-disruptor:publisher-channels>
+			<int-disruptor:publisher-channel ref="mediator"/>
+		</int-disruptor:publisher-channels>
+	</int-disruptor:message-driven-workflow>
+	
+	<bean id="tracker" class="org.springframework.integration.disruptor.HandlerOrderTracker"/>
+	
+	<bean id="trackingEventHandler" class="org.springframework.integration.disruptor.TrackedNamedEventHandler">
+		<constructor-arg ref="tracker"/>
+		<constructor-arg value="tracking"/>
+	</bean>
+
+</beans>
